@@ -3,6 +3,36 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --login-stage: #f4f0e8;
+  --login-stage-mid: #ebe4d6;
+  --login-card: rgba(255, 252, 246, 0.88);
+  --login-card-border: rgba(176, 141, 87, 0.35);
+  --login-gold: #b08d57;
+  --login-gold-muted: #9a7a4a;
+  --login-cream: #f3ead8;
+  --login-field: rgba(28, 24, 20, 0.05);
+  --login-field-border: rgba(28, 24, 20, 0.12);
+  --login-text: #1c1814;
+  --login-muted: rgba(28, 24, 20, 0.55);
+  --login-grid: rgba(28, 24, 20, 0.06);
+  --login-shadow: 0 24px 60px rgba(28, 24, 20, 0.12);
+
+  --dash-bg: #18140f;
+  --dash-sidebar: #12100d;
+  --dash-sidebar-border: rgba(196, 165, 116, 0.16);
+  --dash-sidebar-text: #f6f1e7;
+  --dash-sidebar-muted: rgba(246, 241, 231, 0.62);
+  --dash-nav-active-bg: #f3ead8;
+  --dash-nav-active-text: #1c1814;
+  --dash-nav-hover: rgba(243, 234, 216, 0.08);
+  --dash-header: rgba(24, 20, 15, 0.92);
+  --dash-surface: rgba(32, 27, 21, 0.92);
+  --dash-field: rgba(0, 0, 0, 0.28);
+  --dash-border: rgba(196, 165, 116, 0.18);
+  --dash-text: #f6f1e7;
+  --dash-muted: rgba(246, 241, 231, 0.58);
+  --dash-gold-muted: #a58a5c;
+  --dash-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
 }
 
 @theme inline {
@@ -19,8 +49,148 @@
   }
 }
 
+html.login-theme-dark,
+.login-theme-dark {
+  --login-stage: #14110e;
+  --login-stage-mid: #1d1914;
+  --login-card: rgba(28, 24, 20, 0.72);
+  --login-card-border: rgba(176, 141, 87, 0.28);
+  --login-gold: #c4a574;
+  --login-gold-muted: #a58a5c;
+  --login-cream: #f3ead8;
+  --login-field: rgba(0, 0, 0, 0.35);
+  --login-field-border: rgba(176, 141, 87, 0.18);
+  --login-text: #f6f1e7;
+  --login-muted: rgba(246, 241, 231, 0.55);
+  --login-grid: rgba(243, 234, 216, 0.05);
+  --login-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
+
+  --dash-bg: #18140f;
+  --dash-sidebar: #12100d;
+  --dash-sidebar-border: rgba(196, 165, 116, 0.16);
+  --dash-sidebar-text: #f6f1e7;
+  --dash-sidebar-muted: rgba(246, 241, 231, 0.62);
+  --dash-nav-active-bg: #f3ead8;
+  --dash-nav-active-text: #1c1814;
+  --dash-nav-hover: rgba(243, 234, 216, 0.08);
+  --dash-header: rgba(24, 20, 15, 0.92);
+  --dash-surface: rgba(32, 27, 21, 0.92);
+  --dash-field: rgba(0, 0, 0, 0.28);
+  --dash-border: rgba(196, 165, 116, 0.18);
+  --dash-text: #f6f1e7;
+  --dash-muted: rgba(246, 241, 231, 0.58);
+  --dash-gold-muted: #a58a5c;
+  --dash-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+html.login-theme-light,
+.login-theme-light {
+  --login-stage: #f9f8f3;
+  --login-stage-mid: #f1eee6;
+  --login-card: rgba(255, 255, 255, 0.94);
+  --login-card-border: rgba(197, 160, 89, 0.28);
+  --login-gold: #c5a059;
+  --login-gold-muted: #a8884a;
+  --login-cream: #eaddca;
+  --login-field: rgba(26, 26, 26, 0.04);
+  --login-field-border: rgba(26, 26, 26, 0.1);
+  --login-text: #1a1a1a;
+  --login-muted: rgba(26, 26, 26, 0.55);
+  --login-grid: rgba(26, 26, 26, 0.05);
+  --login-shadow: 0 20px 48px rgba(26, 26, 26, 0.08);
+
+  --dash-bg: #f9f8f3;
+  --dash-sidebar: #ffffff;
+  --dash-sidebar-border: rgba(26, 26, 26, 0.08);
+  --dash-sidebar-text: #1a1a1a;
+  --dash-sidebar-muted: rgba(26, 26, 26, 0.62);
+  --dash-nav-active-bg: #eaddca;
+  --dash-nav-active-text: #1a1a1a;
+  --dash-nav-hover: rgba(26, 26, 26, 0.04);
+  --dash-header: rgba(249, 248, 243, 0.96);
+  --dash-surface: #ffffff;
+  --dash-field: rgba(26, 26, 26, 0.035);
+  --dash-border: rgba(26, 26, 26, 0.1);
+  --dash-text: #1a1a1a;
+  --dash-muted: rgba(26, 26, 26, 0.55);
+  --dash-gold-muted: #c5a059;
+  --dash-shadow: 0 12px 28px rgba(26, 26, 26, 0.06);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+html.login-theme-dark .pipeline-column {
+  background-color: var(--col-tint-dark) !important;
+}
+
+.filter-dropdown-item:hover,
+.filter-dropdown-item:focus-visible {
+  background-color: var(--dash-nav-active-bg);
+  outline: none;
+}
+
+/* Custom slim scrollbars — not the default browser chrome */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--dash-muted) 40%, transparent)
+    transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--dash-muted) 38%, transparent);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--dash-muted) 58%, transparent);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.dash-h-scroll,
+.dash-v-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--dash-muted) 42%, transparent)
+    color-mix(in srgb, var(--dash-border) 35%, transparent);
+}
+
+.dash-h-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.dash-v-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dash-h-scroll::-webkit-scrollbar-track,
+.dash-v-scroll::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--dash-border) 28%, transparent);
+  border-radius: 999px;
+  margin-inline: 4px;
+}
+
+.dash-h-scroll::-webkit-scrollbar-thumb,
+.dash-v-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--dash-muted) 48%, transparent);
+  border-radius: 999px;
+}
+
+.dash-h-scroll::-webkit-scrollbar-thumb:hover,
+.dash-v-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--dash-gold-muted) 70%, transparent);
 }
