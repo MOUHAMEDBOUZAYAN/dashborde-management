@@ -1,12 +1,18 @@
-import { EmptyState } from "@/components/dashboard/empty-state";
+import { Suspense } from "react";
+import { ConnexionMetaPageView } from "@/components/dashboard/connexion-meta-page";
 
 export const instant = false;
 
 export default function ConnexionMetaPage() {
   return (
-    <EmptyState
-      title="Bientôt disponible"
-      description="La connexion Meta sera disponible ici prochainement."
-    />
+    <Suspense
+      fallback={
+        <p className="text-sm" style={{ color: "var(--dash-muted)" }}>
+          Chargement…
+        </p>
+      }
+    >
+      <ConnexionMetaPageView />
+    </Suspense>
   );
 }
