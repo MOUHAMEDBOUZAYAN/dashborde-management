@@ -1,34 +1,46 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Instrument_Serif } from "next/font/google";
 import { useQuery } from "@tanstack/react-query";
 import {
   PipelinesTabBar,
   type PipelineTabId,
 } from "@/components/dashboard/pipelines-tab-bar";
 import { readErrorMessage } from "@/lib/auth-api";
+import { initialsFromName } from "@/lib/format-relative";
 import { t } from "@/lib/i18n";
-import { formatMad } from "@/lib/performance-metrics";
+import {
+  buildMemberScoreCards,
+  formatMad,
+  type PerformancePeriod,
+} from "@/lib/performance-metrics";
 import {
   fetchPipelineLeads,
   pipelineLeadsQueryKey,
 } from "@/lib/pipeline-api";
 import { fetchPipelines, pipelinesQueryKey } from "@/lib/pipelines-api";
 import {
+  allLeadActivitiesQueryKey,
+  fetchAllLeadActivities,
   fetchPerformance,
   performanceStatsQueryKey,
 } from "@/lib/stats-api";
+import { fetchTeamMembers, teamMembersQueryKey } from "@/lib/team-api";
+import { fetchTasks, tasksQueryKey } from "@/lib/tasks-api";
 import { usePortalLocale } from "@/lib/use-portal-locale";
+import { useAuthStore } from "@/store/auth-store";
 
-const displaySerif = Instrument_Serif({
-  weight: "400",
-  subsets: ["latin"],
-});
+const PERIOD_OPTIONS: { value: PerformancePeriod; label: string }[] = [
+  { value: 7, label: "7 jours" },
+  { value: 30, label: "30 jours" },
+  { value: "all", label: "Tout" },
+];
 
 export function PerformancePageView() {
   const { locale } = usePortalLocale();
+  const clientEmail = useAuthStore((state) => state.client?.email);
   const [selectedTab, setSelectedTab] = useState<PipelineTabId>("all");
+  const [period, setPeriod] = useState<PerformancePeriod>(30);
 
   const pipelinesQuery = useQuery({
     queryKey: pipelinesQueryKey,
@@ -40,6 +52,21 @@ export function PerformancePageView() {
     queryFn: () => fetchPipelineLeads("all"),
   });
 
+  const tasksQuery = useQuery({
+    queryKey: tasksQueryKey,
+    queryFn: () => fetchTasks(),
+  });
+
+  const teamQuery = useQuery({
+    queryKey: teamMembersQueryKey,
+    queryFn: fetchTeamMembers,
+  });
+
+  const activitiesQuery = useQuery({
+    queryKey: allLeadActivitiesQueryKey,
+    queryFn: () => fetchAllLeadActivities(100),
+  });
+
   const performanceQuery = useQuery({
     queryKey: performanceStatsQueryKey,
     queryFn: fetchPerformance,
@@ -47,8 +74,10 @@ export function PerformancePageView() {
 
   const pipelines = pipelinesQuery.data ?? [];
   const allLeads = leadsQuery.data ?? [];
+  const allTasks = tasksQuery.data ?? [];
+  const teamMembers = teamQuery.data ?? [];
+  const activities = activitiesQuery.data ?? [];
   const totals = performanceQuery.data?.totals;
-  const memberRows = performanceQuery.data?.team ?? [];
 
   const counts = useMemo(() => {
     const byPipeline = Object.fromEntries(
@@ -62,9 +91,41 @@ export function PerformancePageView() {
     return { all: allLeads.length, byPipeline };
   }, [allLeads, pipelines]);
 
+  const scopedLeads = useMemo(() => {
+    if (selectedTab === "all") return allLeads;
+    return allLeads.filter((lead) => lead.pipeline_id === selectedTab);
+  }, [allLeads, selectedTab]);
+
+  const scopedTasks = useMemo(() => {
+    if (selectedTab === "all") return allTasks;
+    return allTasks.filter((task) => task.pipeline_id === selectedTab);
+  }, [allTasks, selectedTab]);
+
+  const scoreCards = useMemo(
+    () =>
+      buildMemberScoreCards({
+        members: teamMembers,
+        leads: scopedLeads,
+        tasks: scopedTasks,
+        activities,
+        youEmail: clientEmail,
+        period,
+      }),
+    [
+      teamMembers,
+      scopedLeads,
+      scopedTasks,
+      activities,
+      clientEmail,
+      period,
+    ],
+  );
+
   const loading =
     pipelinesQuery.isLoading ||
     leadsQuery.isLoading ||
+    tasksQuery.isLoading ||
+    teamQuery.isLoading ||
     performanceQuery.isLoading;
 
   const performanceError = performanceQuery.isError
@@ -105,62 +166,67 @@ export function PerformancePageView() {
           >
             {performanceError}
           </p>
-        ) : totals ? (
+        ) : (
           <>
-            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3">
-              <KpiCard label="Leads totaux" value={String(totals.totalLeads)} />
-              <KpiCard
-                label="Gagnés"
-                value={String(totals.won)}
-                tone="success"
-              />
-              <KpiCard
-                label="Taux de conversion"
-                value={`${totals.conversionRate} %`}
-                tone={totals.conversionRate > 0 ? "success" : "default"}
-              />
-              <KpiCard
-                label="Valeur gagnée"
-                value={formatMad(totals.estimatedWonValue)}
-              />
-            </div>
+            {totals ? (
+              <>
+                <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3">
+                  <KpiCard
+                    label="Leads totaux"
+                    value={String(totals.totalLeads)}
+                  />
+                  <KpiCard
+                    label="Gagnés"
+                    value={String(totals.won)}
+                    tone="success"
+                  />
+                  <KpiCard
+                    label="Taux de conversion"
+                    value={`${totals.conversionRate} %`}
+                    tone={totals.conversionRate > 0 ? "success" : "default"}
+                  />
+                  <KpiCard
+                    label="Valeur gagnée"
+                    value={formatMad(totals.estimatedWonValue)}
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3">
-              <KpiCard label="En cours" value={String(totals.inProgress)} />
-              <KpiCard
-                label="Perdus"
-                value={String(totals.lost)}
-                tone={totals.lost > 0 ? "danger" : "default"}
-              />
-              <KpiCard
-                label="Tâches en cours"
-                value={String(totals.tasksPending)}
-              />
-              <KpiCard
-                label="Tâches terminées"
-                value={String(totals.tasksDone)}
-                tone="success"
-              />
-            </div>
+                <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3">
+                  <KpiCard
+                    label="En cours"
+                    value={String(totals.inProgress)}
+                  />
+                  <KpiCard
+                    label="Perdus"
+                    value={String(totals.lost)}
+                    tone={totals.lost > 0 ? "danger" : "default"}
+                  />
+                  <KpiCard
+                    label="Tâches en cours"
+                    value={String(totals.tasksPending)}
+                  />
+                  <KpiCard
+                    label="Tâches terminées"
+                    value={String(totals.tasksDone)}
+                    tone="success"
+                  />
+                </div>
+              </>
+            ) : null}
 
             <section className="space-y-3">
-              <div>
-                <h2
-                  className={`${displaySerif.className} text-xl tracking-tight sm:text-2xl`}
-                  style={{ color: "var(--dash-text)" }}
-                >
-                  Performance par membre
-                </h2>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <p
-                  className="mt-1 text-sm"
+                  className="max-w-xl text-sm leading-6"
                   style={{ color: "var(--dash-muted)" }}
                 >
-                  Résultats de chaque collaborateur sur les leads qui lui sont
-                  assignés.
+                  Le score combine la rapidité du premier contact, le respect
+                  des échéances et les tâches en retard.
                 </p>
+                <PeriodFilter value={period} onChange={setPeriod} />
               </div>
 
-              {memberRows.length === 0 ? (
+              {scoreCards.length === 0 ? (
                 <div
                   className="flex min-h-32 items-center justify-center rounded-2xl border px-4 py-8 text-center text-sm"
                   style={{
@@ -172,108 +238,199 @@ export function PerformancePageView() {
                   Aucune donnée d&apos;équipe pour le moment.
                 </div>
               ) : (
-                <div
-                  className="dash-h-scroll overflow-auto rounded-2xl border"
-                  style={{
-                    borderColor: "var(--dash-border)",
-                    backgroundColor: "var(--dash-surface)",
-                  }}
-                >
-                  <table className="min-w-[780px] w-full border-collapse text-left text-sm">
-                    <thead>
-                      <tr
-                        className="border-b text-xs uppercase tracking-wide"
-                        style={{
-                          borderColor: "var(--dash-border)",
-                          color: "var(--dash-muted)",
-                        }}
-                      >
-                        <th className="px-4 py-3 font-semibold">Membre</th>
-                        <th className="px-4 py-3 font-semibold">Rôle</th>
-                        <th className="px-4 py-3 font-semibold">Leads</th>
-                        <th className="px-4 py-3 font-semibold">En cours</th>
-                        <th className="px-4 py-3 font-semibold">Gagnés</th>
-                        <th className="px-4 py-3 font-semibold">Perdus</th>
-                        <th className="px-4 py-3 font-semibold">Conversion</th>
-                        <th className="px-4 py-3 font-semibold">Valeur</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {memberRows.map((row) => (
-                        <tr
-                          key={row.key}
-                          className="border-b last:border-b-0"
-                          style={{ borderColor: "var(--dash-border)" }}
-                        >
-                          <td className="px-4 py-3">
-                            <p
-                              className="font-medium"
-                              style={{ color: "var(--dash-text)" }}
-                            >
-                              {row.name}
-                            </p>
-                            {row.email ? (
-                              <p
-                                className="mt-0.5 text-xs"
-                                style={{ color: "var(--dash-muted)" }}
-                              >
-                                {row.email}
-                              </p>
-                            ) : null}
-                          </td>
-                          <td
-                            className="px-4 py-3"
-                            style={{ color: "var(--dash-muted)" }}
-                          >
-                            {row.roleLabel}
-                          </td>
-                          <td
-                            className="px-4 py-3"
-                            style={{ color: "var(--dash-text)" }}
-                          >
-                            {row.leadsAssigned}
-                          </td>
-                          <td
-                            className="px-4 py-3"
-                            style={{ color: "var(--dash-text)" }}
-                          >
-                            {row.inProgress}
-                          </td>
-                          <td className="px-4 py-3" style={{ color: "#4ade80" }}>
-                            {row.won}
-                          </td>
-                          <td
-                            className="px-4 py-3"
-                            style={{
-                              color:
-                                row.lost > 0 ? "#f87171" : "var(--dash-muted)",
-                            }}
-                          >
-                            {row.lost}
-                          </td>
-                          <td
-                            className="px-4 py-3 font-medium"
-                            style={{ color: "var(--dash-text)" }}
-                          >
-                            {row.conversionRate} %
-                          </td>
-                          <td
-                            className="px-4 py-3"
-                            style={{ color: "var(--dash-gold-muted)" }}
-                          >
-                            {formatMad(row.estimatedWonValue)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ul className="space-y-3">
+                  {scoreCards.map((card) => (
+                    <li key={card.key}>
+                      <MemberScoreCardView card={card} />
+                    </li>
+                  ))}
+                </ul>
               )}
             </section>
           </>
-        ) : null}
+        )}
       </div>
     </section>
+  );
+}
+
+function PeriodFilter({
+  value,
+  onChange,
+}: {
+  value: PerformancePeriod;
+  onChange: (value: PerformancePeriod) => void;
+}) {
+  return (
+    <div
+      className="inline-flex shrink-0 rounded-full border p-0.5"
+      style={{
+        borderColor: "var(--dash-border)",
+        backgroundColor: "var(--dash-surface)",
+      }}
+      role="group"
+      aria-label="Période"
+    >
+      {PERIOD_OPTIONS.map((option) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={String(option.value)}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors sm:px-3.5"
+            style={
+              active
+                ? {
+                    backgroundColor: "var(--dash-nav-active-bg)",
+                    color: "var(--dash-nav-active-text)",
+                  }
+                : { color: "var(--dash-muted)", backgroundColor: "transparent" }
+            }
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function MemberScoreCardView({
+  card,
+}: {
+  card: ReturnType<typeof buildMemberScoreCards>[number];
+}) {
+  const initials = initialsFromName(card.name);
+  const labelColor =
+    card.score >= 80
+      ? "#4ade80"
+      : card.score >= 55
+        ? "var(--dash-gold-muted)"
+        : card.score >= 35
+          ? "#fbbf24"
+          : "#f87171";
+
+  return (
+    <article
+      className="rounded-2xl border px-4 py-4 sm:px-5 sm:py-5"
+      style={{
+        borderColor: "var(--dash-border)",
+        backgroundColor: "var(--dash-surface)",
+      }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold tracking-wide"
+            style={{
+              backgroundColor: "var(--dash-nav-active-bg)",
+              color: "var(--dash-nav-active-text)",
+            }}
+            aria-hidden
+          >
+            {initials}
+          </span>
+          <div className="min-w-0">
+            <p
+              className="truncate text-sm font-semibold sm:text-base"
+              style={{ color: "var(--dash-text)" }}
+            >
+              {card.name}
+              {card.isYou ? (
+                <span style={{ color: "var(--dash-muted)" }}> (vous)</span>
+              ) : null}
+            </p>
+            <p
+              className="mt-1 text-xs font-medium"
+              style={{ color: labelColor }}
+            >
+              {card.label}
+            </p>
+          </div>
+        </div>
+
+        <p
+          className="dash-display shrink-0 text-2xl tracking-tight sm:text-3xl"
+          style={{ color: "var(--dash-text)" }}
+        >
+          {card.score}
+          <span
+            className="text-base sm:text-lg"
+            style={{ color: "var(--dash-muted)" }}
+          >
+            {" "}
+            / 100
+          </span>
+        </p>
+      </div>
+
+      <div
+        className="mt-4 h-1.5 overflow-hidden rounded-full"
+        style={{ backgroundColor: "var(--dash-field)" }}
+        role="progressbar"
+        aria-valuenow={card.score}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Score ${card.score} sur 100`}
+      >
+        <div
+          className="h-full rounded-full transition-[width] duration-300"
+          style={{
+            width: `${card.score}%`,
+            backgroundColor: "var(--dash-nav-active-bg)",
+          }}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <Metric label="Assignés" value={String(card.assigned)} />
+        <Metric
+          label="1er contact moyen"
+          value={
+            card.firstContactAvgMinutes > 0
+              ? `${card.firstContactAvgMinutes} min`
+              : "0 min"
+          }
+        />
+        <Metric label="Tâches terminées" value={String(card.tasksDone)} />
+        <Metric label="Dans les temps" value={`${card.onTimePercent} %`} />
+        <Metric
+          label="En retard"
+          value={String(card.overdue)}
+          tone={card.overdue > 0 ? "danger" : "default"}
+        />
+      </div>
+    </article>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "danger";
+}) {
+  return (
+    <div>
+      <p
+        className="text-[10px] font-semibold tracking-[0.12em] uppercase"
+        style={{ color: "var(--dash-gold-muted)" }}
+      >
+        {label}
+      </p>
+      <p
+        className="mt-1 text-sm font-semibold sm:text-base"
+        style={{
+          color: tone === "danger" ? "#f87171" : "var(--dash-text)",
+        }}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
 

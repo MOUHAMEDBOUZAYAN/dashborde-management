@@ -11,7 +11,6 @@ import {
 } from "@/components/layout/nav-icons";
 import { navLabel, t } from "@/lib/i18n";
 import { usePortalLocale } from "@/lib/use-portal-locale";
-import { useAuthStore } from "@/store/auth-store";
 
 type AppHeaderProps = {
   onMenuClick: () => void;
@@ -22,7 +21,6 @@ type AppHeaderProps = {
 export function AppHeader({ onMenuClick, dark, onToggleTheme }: AppHeaderProps) {
   const pathname = usePathname();
   const { locale, toggleLocale } = usePortalLocale();
-  const companyName = useAuthStore((state) => state.client?.company_name);
   const title =
     navLabel(locale, pathname) !== pathname
       ? navLabel(locale, pathname)
@@ -51,19 +49,9 @@ export function AppHeader({ onMenuClick, dark, onToggleTheme }: AppHeaderProps) 
         >
           <IconMenu />
         </button>
-        <div className="min-w-0">
-          <h1 className="truncate text-base font-semibold tracking-tight sm:text-lg md:text-xl">
-            {title}
-          </h1>
-          {companyName ? (
-            <p
-              className="truncate text-xs sm:text-sm"
-              style={{ color: "var(--dash-muted)" }}
-            >
-              {companyName}
-            </p>
-          ) : null}
-        </div>
+        <h1 className="dash-display min-w-0 truncate text-[1.05rem] leading-none tracking-normal sm:text-lg">
+          {title}
+        </h1>
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 md:gap-3">
@@ -88,21 +76,17 @@ export function AppHeader({ onMenuClick, dark, onToggleTheme }: AppHeaderProps) 
           aria-label={
             locale === "fr" ? t(locale, "switchToEn") : t(locale, "switchToFr")
           }
-          title={t(locale, "language")}
-          className="inline-flex h-9 items-center rounded-full border px-2.5 text-xs font-semibold tracking-wide sm:px-3"
+          title={
+            locale === "fr" ? t(locale, "switchToEn") : t(locale, "switchToFr")
+          }
+          className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border px-2.5 text-xs font-semibold tracking-wide sm:px-3"
           style={{
             borderColor: "var(--dash-border)",
             color: "var(--dash-text)",
             backgroundColor: "var(--dash-surface)",
           }}
         >
-          <span className={locale === "fr" ? "opacity-100" : "opacity-45"}>
-            FR
-          </span>
-          <span className="mx-0.5 opacity-45">/</span>
-          <span className={locale === "en" ? "opacity-100" : "opacity-45"}>
-            EN
-          </span>
+          {locale === "fr" ? "EN" : "FR"}
         </button>
 
         <button

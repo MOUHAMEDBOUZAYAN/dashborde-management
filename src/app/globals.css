@@ -24,6 +24,8 @@
   --dash-sidebar-muted: rgba(246, 241, 231, 0.62);
   --dash-nav-active-bg: #f3ead8;
   --dash-nav-active-text: #1c1814;
+  --dash-nav-active-border: rgba(176, 141, 87, 0.45);
+  --dash-nav-active-shadow: inset 2px 0 0 rgba(176, 141, 87, 0.55);
   --dash-nav-hover: rgba(243, 234, 216, 0.08);
   --dash-header: rgba(24, 20, 15, 0.92);
   --dash-surface: rgba(32, 27, 21, 0.92);
@@ -40,6 +42,14 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-instrument-serif);
+}
+
+/* Brand / page titles — same Instrument Serif as sidebar logo */
+.dash-display {
+  font-family: var(--font-instrument-serif), ui-serif, Georgia, "Times New Roman",
+    serif;
+  font-weight: 400;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -72,6 +82,8 @@ html.login-theme-dark,
   --dash-sidebar-muted: rgba(246, 241, 231, 0.62);
   --dash-nav-active-bg: #f3ead8;
   --dash-nav-active-text: #1c1814;
+  --dash-nav-active-border: rgba(176, 141, 87, 0.45);
+  --dash-nav-active-shadow: inset 2px 0 0 rgba(176, 141, 87, 0.55);
   --dash-nav-hover: rgba(243, 234, 216, 0.08);
   --dash-header: rgba(24, 20, 15, 0.92);
   --dash-surface: rgba(32, 27, 21, 0.92);
@@ -104,8 +116,10 @@ html.login-theme-light,
   --dash-sidebar-border: rgba(26, 26, 26, 0.08);
   --dash-sidebar-text: #1a1a1a;
   --dash-sidebar-muted: rgba(26, 26, 26, 0.62);
-  --dash-nav-active-bg: #eaddca;
-  --dash-nav-active-text: #1a1a1a;
+  --dash-nav-active-bg: #f3ead8;
+  --dash-nav-active-text: #1c1814;
+  --dash-nav-active-border: rgba(176, 141, 87, 0.4);
+  --dash-nav-active-shadow: inset 2px 0 0 rgba(176, 141, 87, 0.5);
   --dash-nav-hover: rgba(26, 26, 26, 0.04);
   --dash-header: rgba(249, 248, 243, 0.96);
   --dash-surface: #ffffff;
@@ -131,6 +145,14 @@ html.login-theme-dark .pipeline-column {
 .filter-dropdown-item:focus-visible {
   background-color: var(--dash-nav-active-bg);
   outline: none;
+}
+
+/* Sidebar active item — cream pill (same in light + dark) */
+.dash-nav-active {
+  background-color: var(--dash-nav-active-bg);
+  color: var(--dash-nav-active-text);
+  border: 1px solid var(--dash-nav-active-border);
+  box-shadow: var(--dash-nav-active-shadow);
 }
 
 /* Custom slim scrollbars — not the default browser chrome */

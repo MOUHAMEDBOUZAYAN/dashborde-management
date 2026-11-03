@@ -355,26 +355,28 @@ function AddMemberForm({
         className="space-y-3.5"
         onSubmit={handleSubmit((values) => onSubmit(values, reset))}
       >
-        <Field id="member-name" label="Nom" error={errors.name?.message}>
-          <input
-            id="member-name"
-            autoComplete="name"
-            className={fieldClassName}
-            style={fieldStyle}
-            {...register("name")}
-          />
-        </Field>
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <Field id="member-name" label="Nom" error={errors.name?.message}>
+            <input
+              id="member-name"
+              autoComplete="name"
+              className={fieldClassName}
+              style={fieldStyle}
+              {...register("name")}
+            />
+          </Field>
 
-        <Field id="member-email" label="Email" error={errors.email?.message}>
-          <input
-            id="member-email"
-            type="email"
-            autoComplete="email"
-            className={fieldClassName}
-            style={fieldStyle}
-            {...register("email")}
-          />
-        </Field>
+          <Field id="member-email" label="Email" error={errors.email?.message}>
+            <input
+              id="member-email"
+              type="email"
+              autoComplete="email"
+              className={fieldClassName}
+              style={fieldStyle}
+              {...register("email")}
+            />
+          </Field>
+        </div>
 
         <Field
           id="member-password"

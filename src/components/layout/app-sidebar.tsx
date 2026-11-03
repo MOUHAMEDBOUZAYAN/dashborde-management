@@ -2,18 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Instrument_Serif } from "next/font/google";
 import { usePathname } from "next/navigation";
 import { DASHBOARD_NAV, isNavActive } from "@/config/nav";
 import { IconLogout, NAV_ICONS } from "@/components/layout/nav-icons";
 import { navLabel, t } from "@/lib/i18n";
 import { usePortalLocale } from "@/lib/use-portal-locale";
 import { useAuthStore } from "@/store/auth-store";
-
-const serif = Instrument_Serif({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 type AppSidebarProps = {
   open: boolean;
@@ -37,14 +31,28 @@ export function AppSidebar({ open, onNavigate }: AppSidebarProps) {
       }}
     >
       <div className="flex items-center gap-3 px-4 pt-5 pb-4 sm:px-5 sm:pt-6 sm:pb-5">
-        <Image
-          src="/images/63.png"
-          alt="63 Agency"
-          width={40}
-          height={40}
-          className="h-9 w-9 rounded-[10px] sm:h-10 sm:w-10"
-        />
-        <p className={`${serif.className} text-[20px] leading-none sm:text-[22px]`}>
+        <span
+          className="inline-flex h-9 w-9 shrink-0 overflow-hidden sm:h-10 sm:w-10"
+          style={{
+            borderRadius: "32%",
+            boxShadow: "none",
+            filter: "none",
+          }}
+        >
+          <Image
+            src="/images/63.png"
+            alt="63 Agency"
+            width={40}
+            height={40}
+            className="h-full w-full scale-[1.2] object-cover shadow-none"
+            style={{
+              borderRadius: "32%",
+              boxShadow: "none",
+              filter: "none",
+            }}
+          />
+        </span>
+        <p className="dash-display text-[20px] leading-none tracking-normal sm:text-[22px]">
           63 Agency
         </p>
       </div>
@@ -59,9 +67,9 @@ export function AppSidebar({ open, onNavigate }: AppSidebarProps) {
               key={item.href}
               href={item.href}
               onClick={onNavigate}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
                 active
-                  ? "bg-[var(--dash-nav-active-bg)] text-[var(--dash-nav-active-text)]"
+                  ? "dash-nav-active"
                   : "text-[var(--dash-sidebar-muted)] hover:bg-[var(--dash-nav-hover)] hover:text-[var(--dash-sidebar-text)]"
               }`}
             >
