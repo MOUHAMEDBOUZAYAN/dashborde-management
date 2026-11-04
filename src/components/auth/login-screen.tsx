@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Instrument_Serif } from "next/font/google";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -18,11 +17,6 @@ import { useAuthHydrated } from "@/lib/use-auth-hydrated";
 import { usePortalTheme } from "@/lib/use-portal-theme";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { useAuthStore } from "@/store/auth-store";
-
-const serif = Instrument_Serif({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 export function LoginScreen() {
   const router = useRouter();
@@ -124,8 +118,11 @@ export function LoginScreen() {
             className="h-11 w-11 rounded-[10px]"
           />
           <p
-            className={`${serif.className} mt-3 text-[24px] leading-none`}
-            style={{ color: "var(--login-text)" }}
+            className="dash-display mt-3 text-3xl leading-none"
+            style={{
+              color: "var(--login-text)",
+              textShadow: "0 0 18px color-mix(in srgb, var(--login-cream) 35%, transparent)",
+            }}
           >
             63 Agency
           </p>
@@ -136,7 +133,7 @@ export function LoginScreen() {
               style={{ backgroundColor: "var(--login-card-border)" }}
             />
             <span
-              className="shrink-0 text-[10px] font-medium tracking-[0.2em] uppercase"
+              className="dash-label shrink-0 text-[10px] font-medium tracking-[0.2em] uppercase"
               style={{ color: "var(--login-gold-muted)" }}
             >
               Connexion client

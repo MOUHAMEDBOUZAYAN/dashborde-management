@@ -9,7 +9,7 @@
   --login-card-border: rgba(176, 141, 87, 0.35);
   --login-gold: #b08d57;
   --login-gold-muted: #9a7a4a;
-  --login-cream: #f3ead8;
+  --login-cream: #f2ead3;
   --login-field: rgba(28, 24, 20, 0.05);
   --login-field-border: rgba(28, 24, 20, 0.12);
   --login-text: #1c1814;
@@ -17,24 +17,25 @@
   --login-grid: rgba(28, 24, 20, 0.06);
   --login-shadow: 0 24px 60px rgba(28, 24, 20, 0.12);
 
-  --dash-bg: #18140f;
-  --dash-sidebar: #12100d;
-  --dash-sidebar-border: rgba(196, 165, 116, 0.16);
-  --dash-sidebar-text: #f6f1e7;
-  --dash-sidebar-muted: rgba(246, 241, 231, 0.62);
-  --dash-nav-active-bg: #f3ead8;
-  --dash-nav-active-text: #1c1814;
-  --dash-nav-active-border: rgba(176, 141, 87, 0.45);
-  --dash-nav-active-shadow: inset 2px 0 0 rgba(176, 141, 87, 0.55);
-  --dash-nav-hover: rgba(243, 234, 216, 0.08);
-  --dash-header: rgba(24, 20, 15, 0.92);
-  --dash-surface: rgba(32, 27, 21, 0.92);
-  --dash-field: rgba(0, 0, 0, 0.28);
-  --dash-border: rgba(196, 165, 116, 0.18);
-  --dash-text: #f6f1e7;
-  --dash-muted: rgba(246, 241, 231, 0.58);
-  --dash-gold-muted: #a58a5c;
-  --dash-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  --dash-bg: #0a0a0a;
+  --dash-sidebar: #11100f;
+  --dash-sidebar-border: rgba(197, 160, 125, 0.14);
+  --dash-sidebar-text: #f2ead3;
+  --dash-sidebar-muted: #8a8479;
+  --dash-nav-active-bg: #f2ead3;
+  --dash-nav-active-text: #1a1612;
+  --dash-nav-active-border: transparent;
+  --dash-nav-active-shadow: none;
+  --dash-nav-hover: rgba(242, 234, 211, 0.06);
+  --dash-header: rgba(10, 10, 10, 0.94);
+  --dash-surface: #161412;
+  --dash-field: rgba(0, 0, 0, 0.35);
+  --dash-border: rgba(197, 160, 125, 0.16);
+  --dash-text: #f2ead3;
+  --dash-muted: #8a8479;
+  --dash-gold-muted: #c5a07d;
+  --dash-danger: #8b2e2e;
+  --dash-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
@@ -42,14 +43,22 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-instrument-serif);
+  --font-display: var(--font-cormorant-garamond);
+  --font-label: var(--font-dm-sans);
 }
 
-/* Brand / page titles — same Instrument Serif as sidebar logo */
+/* Brand / page titles — Cormorant Garamond SemiBold, no extra tracking */
 .dash-display {
-  font-family: var(--font-instrument-serif), ui-serif, Georgia, "Times New Roman",
-    serif;
-  font-weight: 400;
+  font-family: var(--font-cormorant-garamond), "Cormorant Garamond", ui-serif,
+    Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Login eyebrow — DM Sans */
+.dash-label {
+  font-family: var(--font-dm-sans), "DM Sans", ui-sans-serif, system-ui,
+    sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -61,38 +70,39 @@
 
 html.login-theme-dark,
 .login-theme-dark {
-  --login-stage: #14110e;
-  --login-stage-mid: #1d1914;
-  --login-card: rgba(28, 24, 20, 0.72);
-  --login-card-border: rgba(176, 141, 87, 0.28);
-  --login-gold: #c4a574;
-  --login-gold-muted: #a58a5c;
-  --login-cream: #f3ead8;
+  --login-stage: #0b0a09;
+  --login-stage-mid: #11100e;
+  --login-card: rgba(22, 20, 18, 0.78);
+  --login-card-border: rgba(197, 160, 125, 0.22);
+  --login-gold: #c5a07d;
+  --login-gold-muted: #c5a07d;
+  --login-cream: #f2ead3;
   --login-field: rgba(0, 0, 0, 0.35);
-  --login-field-border: rgba(176, 141, 87, 0.18);
-  --login-text: #f6f1e7;
-  --login-muted: rgba(246, 241, 231, 0.55);
-  --login-grid: rgba(243, 234, 216, 0.05);
+  --login-field-border: rgba(197, 160, 125, 0.18);
+  --login-text: #f2ead3;
+  --login-muted: #8a8479;
+  --login-grid: rgba(242, 234, 211, 0.04);
   --login-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
 
-  --dash-bg: #18140f;
-  --dash-sidebar: #12100d;
-  --dash-sidebar-border: rgba(196, 165, 116, 0.16);
-  --dash-sidebar-text: #f6f1e7;
-  --dash-sidebar-muted: rgba(246, 241, 231, 0.62);
-  --dash-nav-active-bg: #f3ead8;
-  --dash-nav-active-text: #1c1814;
-  --dash-nav-active-border: rgba(176, 141, 87, 0.45);
-  --dash-nav-active-shadow: inset 2px 0 0 rgba(176, 141, 87, 0.55);
-  --dash-nav-hover: rgba(243, 234, 216, 0.08);
-  --dash-header: rgba(24, 20, 15, 0.92);
-  --dash-surface: rgba(32, 27, 21, 0.92);
-  --dash-field: rgba(0, 0, 0, 0.28);
-  --dash-border: rgba(196, 165, 116, 0.18);
-  --dash-text: #f6f1e7;
-  --dash-muted: rgba(246, 241, 231, 0.58);
-  --dash-gold-muted: #a58a5c;
-  --dash-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  --dash-bg: #0a0a0a;
+  --dash-sidebar: #11100f;
+  --dash-sidebar-border: rgba(197, 160, 125, 0.14);
+  --dash-sidebar-text: #f2ead3;
+  --dash-sidebar-muted: #8a8479;
+  --dash-nav-active-bg: #f2ead3;
+  --dash-nav-active-text: #1a1612;
+  --dash-nav-active-border: transparent;
+  --dash-nav-active-shadow: none;
+  --dash-nav-hover: rgba(242, 234, 211, 0.06);
+  --dash-header: rgba(10, 10, 10, 0.94);
+  --dash-surface: #161412;
+  --dash-field: rgba(0, 0, 0, 0.35);
+  --dash-border: rgba(197, 160, 125, 0.16);
+  --dash-text: #f2ead3;
+  --dash-muted: #8a8479;
+  --dash-gold-muted: #c5a07d;
+  --dash-danger: #8b2e2e;
+  --dash-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
 }
 
 html.login-theme-light,
@@ -128,6 +138,7 @@ html.login-theme-light,
   --dash-text: #1a1a1a;
   --dash-muted: rgba(26, 26, 26, 0.55);
   --dash-gold-muted: #c5a059;
+  --dash-danger: #b45353;
   --dash-shadow: 0 12px 28px rgba(26, 26, 26, 0.06);
 }
 
@@ -153,6 +164,11 @@ html.login-theme-dark .pipeline-column {
   color: var(--dash-nav-active-text);
   border: 1px solid var(--dash-nav-active-border);
   box-shadow: var(--dash-nav-active-shadow);
+}
+
+html.login-theme-dark .dash-nav-active,
+.login-theme-dark .dash-nav-active {
+  border-color: transparent;
 }
 
 /* Custom slim scrollbars — not the default browser chrome */

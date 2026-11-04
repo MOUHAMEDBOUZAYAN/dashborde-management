@@ -77,7 +77,7 @@ export function PipelineKanban({
       onDragCancel={handleDragCancel}
     >
       <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="dash-h-scroll flex min-h-0 flex-1 gap-3 overflow-x-auto overflow-y-hidden pb-2">
+        <div className="dash-h-scroll flex min-h-0 flex-1 snap-x snap-mandatory gap-2.5 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2 [-webkit-overflow-scrolling:touch] sm:gap-3 sm:snap-none">
           {PIPELINE_STAGES.map((stage) => {
             const columnLeads = leads.filter((lead) => lead.stage === stage.id);
             return (
@@ -87,6 +87,7 @@ export function PipelineKanban({
                 leads={columnLeads}
                 activeId={activeId}
                 onLeadOpen={onLeadOpen}
+                onStageChange={onStageChange}
               />
             );
           })}
@@ -95,7 +96,7 @@ export function PipelineKanban({
 
       <DragOverlay dropAnimation={null}>
         {activeLead ? (
-          <div className="w-[260px]">
+          <div className="w-[min(78vw,260px)] sm:w-[260px]">
             <PipelineLeadCard lead={activeLead} dragging />
           </div>
         ) : null}
@@ -109,11 +110,13 @@ function KanbanColumn({
   leads,
   activeId,
   onLeadOpen,
+  onStageChange,
 }: {
   stage: PipelineStage;
   leads: PipelineLead[];
   activeId: string | null;
   onLeadOpen: (lead: PipelineLead) => void;
+  onStageChange: (leadId: string, stage: PipelineStageId) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
@@ -123,7 +126,7 @@ function KanbanColumn({
   return (
     <section
       ref={setNodeRef}
-      className="pipeline-column relative flex h-full w-[240px] shrink-0 flex-col overflow-hidden rounded-[16px] sm:w-[260px] xl:w-[280px]"
+      className="pipeline-column relative flex h-full w-[min(78vw,240px)] shrink-0 snap-start flex-col overflow-hidden rounded-[16px] sm:w-[260px] sm:snap-align-none xl:w-[280px]"
       style={
         {
           "--col-tint": stage.tint,
@@ -140,7 +143,7 @@ function KanbanColumn({
         } as CSSProperties
       }
     >
-      <header className="flex shrink-0 items-center gap-2 px-3.5 pt-3 pb-2.5">
+      <header className="flex shrink-0 items-center gap-2 px-3 pt-3 pb-2.5 sm:px-3.5">
         <span
           className="h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: stage.color }}
@@ -164,7 +167,7 @@ function KanbanColumn({
         </span>
       </header>
 
-      <div className="dash-v-scroll flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-2.5 pb-3">
+      <div className="dash-v-scroll flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-y-contain px-2 pb-3 [-webkit-overflow-scrolling:touch] sm:px-2.5">
         {leads.length === 0 ? (
           <p
             className="flex flex-1 items-center justify-center px-2 pb-8 text-center text-xs"
@@ -179,6 +182,7 @@ function KanbanColumn({
               lead={lead}
               isActive={activeId === lead.id}
               onOpen={() => onLeadOpen(lead)}
+              onStageChange={(nextStage) => onStageChange(lead.id, nextStage)}
             />
           ))
         )}
@@ -191,10 +195,12 @@ function DraggableLeadCard({
   lead,
   isActive,
   onOpen,
+  onStageChange,
 }: {
   lead: PipelineLead;
   isActive: boolean;
   onOpen: () => void;
+  onStageChange: (stage: PipelineStageId) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: lead.id,
@@ -207,6 +213,7 @@ function DraggableLeadCard({
       lead={lead}
       dragging={isActive || isDragging}
       onOpen={onOpen}
+      onStageChange={onStageChange}
       style={
         isDragging
           ? { opacity: 0.25, boxShadow: "none", transform: "none" }

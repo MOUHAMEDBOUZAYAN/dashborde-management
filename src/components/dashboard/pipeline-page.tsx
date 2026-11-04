@@ -311,8 +311,8 @@ export function PipelinePageView() {
   }
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
-      <div className="shrink-0">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2.5 sm:gap-3 md:gap-4">
+      <div className="min-w-0 shrink-0">
         <PipelinesTabBar
           selectedTab={selectedTab}
           onSelectTab={setSelectedTab}
@@ -322,7 +322,7 @@ export function PipelinePageView() {
         />
       </div>
 
-      <div className="shrink-0">
+      <div className="min-w-0 shrink-0">
         <PipelineToolbar
           search={search}
           onSearchChange={setSearch}

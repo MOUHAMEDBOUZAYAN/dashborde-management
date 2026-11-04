@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Instrument_Serif } from "next/font/google";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FilterDropdown } from "@/components/dashboard/filter-dropdown";
 import {
@@ -42,11 +41,6 @@ import {
 import { fetchTasks, remindTask, tasksQueryKey } from "@/lib/tasks-api";
 import { usePortalLocale } from "@/lib/use-portal-locale";
 import type { LeadActivity, PipelineLead, Task } from "@/types";
-
-const displaySerif = Instrument_Serif({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 export function SuiviPageView() {
   const queryClient = useQueryClient();
@@ -212,7 +206,7 @@ export function SuiviPageView() {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2
-                    className={`${displaySerif.className} text-xl tracking-tight sm:text-2xl`}
+                    className={`dash-display text-xl tracking-tight sm:text-2xl`}
                     style={{ color: "var(--dash-text)" }}
                   >
                     Leads à contacter
@@ -275,7 +269,7 @@ export function SuiviPageView() {
 
             <section className="space-y-3">
               <h2
-                className={`${displaySerif.className} text-xl tracking-tight sm:text-2xl`}
+                className={`dash-display text-xl tracking-tight sm:text-2xl`}
                 style={{ color: "var(--dash-text)" }}
               >
                 Tâches en retard
@@ -318,7 +312,7 @@ export function SuiviPageView() {
             <section className="space-y-3">
               <div>
                 <h2
-                  className={`${displaySerif.className} text-xl tracking-tight sm:text-2xl`}
+                  className={`dash-display text-xl tracking-tight sm:text-2xl`}
                   style={{ color: "var(--dash-text)" }}
                 >
                   Activité récente

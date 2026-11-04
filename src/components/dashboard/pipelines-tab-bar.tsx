@@ -132,9 +132,9 @@ export function PipelinesTabBar({
 
   return (
     <>
-      <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <div className="dash-h-scroll flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-0.5">
+      <div className="flex min-w-0 flex-col gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <div className="dash-h-scroll flex min-w-0 flex-1 items-center gap-2 overflow-x-auto overscroll-x-contain pb-0.5 [-webkit-overflow-scrolling:touch]">
           <PipelineTab
             active={selectedTab === "all"}
             label={t(locale, "all")}
@@ -172,7 +172,7 @@ export function PipelinesTabBar({
 
           <button
             type="button"
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm font-medium whitespace-nowrap transition-opacity hover:opacity-90"
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-sm font-medium whitespace-nowrap transition-opacity hover:opacity-90 sm:px-3"
             style={{
               borderColor: "var(--dash-border)",
               color: "var(--dash-muted)",
@@ -184,7 +184,8 @@ export function PipelinesTabBar({
             }}
           >
             <IconPlus className="h-3.5 w-3.5" />
-            {t(locale, "newPipeline")}
+            <span className="sm:hidden">Nouveau</span>
+            <span className="hidden sm:inline">{t(locale, "newPipeline")}</span>
           </button>
         </div>
 

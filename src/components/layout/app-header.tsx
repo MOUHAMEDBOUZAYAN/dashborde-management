@@ -28,7 +28,7 @@ export function AppHeader({ onMenuClick, dark, onToggleTheme }: AppHeaderProps) 
 
   return (
     <header
-      className="sticky top-0 z-20 flex min-h-14 items-center justify-between gap-2 border-b px-5 py-2.5 sm:min-h-16 sm:gap-3 sm:px-6 sm:py-3 md:px-7 xl:px-8"
+      className="sticky top-0 z-20 flex min-h-14 items-center justify-between gap-2 border-b px-3 py-2.5 sm:min-h-16 sm:gap-3 sm:px-4 sm:py-3 md:px-5 xl:px-5"
       style={{
         backgroundColor: "var(--dash-header)",
         borderColor: "var(--dash-border)",
@@ -49,7 +49,7 @@ export function AppHeader({ onMenuClick, dark, onToggleTheme }: AppHeaderProps) 
         >
           <IconMenu />
         </button>
-        <h1 className="dash-display min-w-0 truncate text-[1.05rem] leading-none tracking-normal sm:text-lg">
+        <h1 className="dash-display min-w-0 truncate text-xl leading-none tracking-[-0.032em]">
           {title}
         </h1>
       </div>

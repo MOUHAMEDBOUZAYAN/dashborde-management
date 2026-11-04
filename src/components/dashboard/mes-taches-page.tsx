@@ -254,9 +254,9 @@ function TaskRow({
       className="flex flex-col gap-3 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-3"
       style={{
         borderColor: overdue
-          ? "rgba(248, 113, 113, 0.45)"
+          ? "color-mix(in srgb, var(--dash-danger) 55%, transparent)"
           : "var(--dash-border)",
-        backgroundColor: "rgba(0, 0, 0, 0.12)",
+        backgroundColor: "var(--dash-surface)",
       }}
     >
       <div className="min-w-0">
@@ -277,7 +277,7 @@ function TaskRow({
           <span
             className="text-xs"
             style={{
-              color: overdue ? "#f87171" : "var(--dash-gold-muted)",
+              color: overdue ? "var(--dash-danger)" : "var(--dash-gold-muted)",
             }}
           >
             {new Date(task.due_at).toLocaleString("fr-FR", {
@@ -320,8 +320,8 @@ function TaskRow({
           onClick={onCancel}
           className="inline-flex h-8 items-center rounded-full border px-3 text-xs font-medium disabled:opacity-50"
           style={{
-            borderColor: "rgba(248, 113, 113, 0.4)",
-            color: "#f87171",
+            borderColor: "color-mix(in srgb, var(--dash-danger) 45%, transparent)",
+            color: "var(--dash-danger)",
             backgroundColor: "transparent",
           }}
         >

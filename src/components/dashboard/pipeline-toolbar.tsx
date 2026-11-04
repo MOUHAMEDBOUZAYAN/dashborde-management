@@ -46,63 +46,44 @@ export function PipelineToolbar({
   onNewTask,
 }: PipelineToolbarProps) {
   return (
-    <div className="flex flex-col gap-2 xl:gap-2.5">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex min-w-0 flex-col gap-2 xl:flex-row xl:items-center xl:gap-3">
+      <div className="dash-h-scroll flex min-w-0 shrink-0 items-center gap-2 overflow-x-auto pb-0.5">
         <button
           type="button"
           onClick={onNewLead}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-opacity hover:opacity-90 sm:px-3.5"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-opacity hover:opacity-90 sm:px-3.5"
           style={{
             backgroundColor: "var(--dash-text)",
             color: "var(--dash-bg)",
           }}
         >
           <IconPlus className="h-3.5 w-3.5" />
-          <span className="whitespace-nowrap">Nouveau lead</span>
+          <span className="whitespace-nowrap">
+            <span className="sm:hidden">Lead</span>
+            <span className="hidden sm:inline">Nouveau lead</span>
+          </span>
         </button>
 
         <button
           type="button"
           onClick={onNewTask}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-opacity hover:opacity-90 sm:px-3.5"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-opacity hover:opacity-90 sm:px-3.5"
           style={{
             borderColor: "var(--dash-border)",
-            backgroundColor: "var(--dash-surface)",
+            backgroundColor: "transparent",
             color: "var(--dash-text)",
           }}
         >
           <IconNewTask />
-          <span className="whitespace-nowrap">Nouvelle tâche</span>
+          <span className="whitespace-nowrap">
+            <span className="sm:hidden">Tâche</span>
+            <span className="hidden sm:inline">Nouvelle tâche</span>
+          </span>
         </button>
-
-        <div
-          className="ml-auto inline-flex shrink-0 rounded-full border p-0.5"
-          style={{
-            borderColor: "var(--dash-border)",
-            backgroundColor: "var(--dash-surface)",
-          }}
-          role="group"
-          aria-label="Mode d'affichage"
-        >
-          <ViewToggleButton
-            active={viewMode === "kanban"}
-            onClick={() => onViewModeChange("kanban")}
-          >
-            <IconKanban />
-            <span className="hidden sm:inline">Kanban</span>
-          </ViewToggleButton>
-          <ViewToggleButton
-            active={viewMode === "list"}
-            onClick={() => onViewModeChange("list")}
-          >
-            <IconList />
-            <span className="hidden sm:inline">Liste</span>
-          </ViewToggleButton>
-        </div>
       </div>
 
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <label className="relative min-w-0 flex-1 basis-full sm:basis-[220px] sm:max-w-[280px] xl:max-w-[300px]">
+      <div className="dash-h-scroll flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-0.5">
+        <label className="relative min-w-[200px] max-w-[280px] flex-1">
           <span
             className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
             style={{ color: "var(--dash-muted)" }}
@@ -116,50 +97,73 @@ export function PipelineToolbar({
             placeholder="Nom, téléphone ou campagne"
             className="h-9 w-full rounded-full border pr-3 pl-9 text-sm outline-none"
             style={{
-              backgroundColor: "var(--dash-surface)",
+              backgroundColor: "transparent",
               borderColor: "var(--dash-border)",
               color: "var(--dash-text)",
             }}
           />
         </label>
 
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <FilterDropdown
-            ariaLabel="Filtrer par responsable"
-            value={ownerFilter}
-            onChange={onOwnerFilterChange}
-            options={[
-              { value: "all", label: "Tous les responsables" },
-              { value: "unassigned", label: "Non assigné" },
-              ...owners.map((owner) => ({ value: owner, label: owner })),
-            ]}
-          />
+        <FilterDropdown
+          ariaLabel="Filtrer par responsable"
+          value={ownerFilter}
+          onChange={onOwnerFilterChange}
+          options={[
+            { value: "all", label: "Tous les responsables" },
+            { value: "unassigned", label: "Non assigné" },
+            ...owners.map((owner) => ({ value: owner, label: owner })),
+          ]}
+        />
 
-          <FilterDropdown
-            ariaLabel="Filtrer par campagne"
-            value={campaignFilter}
-            onChange={onCampaignFilterChange}
-            options={[
-              { value: "all", label: "Toutes les campagnes" },
-              ...campaigns.map((campaign) => ({
-                value: campaign,
-                label: campaign,
-              })),
-            ]}
-          />
+        <FilterDropdown
+          ariaLabel="Filtrer par campagne"
+          value={campaignFilter}
+          onChange={onCampaignFilterChange}
+          options={[
+            { value: "all", label: "Toutes les campagnes" },
+            ...campaigns.map((campaign) => ({
+              value: campaign,
+              label: campaign,
+            })),
+          ]}
+        />
 
-          <FilterDropdown
-            ariaLabel="Filtrer par date"
-            value={dateFilter}
-            onChange={onDateFilterChange}
-            options={[
-              { value: "all", label: "Toutes les dates" },
-              { value: "today", label: "Aujourd'hui" },
-              { value: "week", label: "7 derniers jours" },
-              { value: "month", label: "30 derniers jours" },
-            ]}
-          />
-        </div>
+        <FilterDropdown
+          ariaLabel="Filtrer par date"
+          value={dateFilter}
+          onChange={onDateFilterChange}
+          options={[
+            { value: "all", label: "Toutes les dates" },
+            { value: "today", label: "Aujourd'hui" },
+            { value: "week", label: "7 derniers jours" },
+            { value: "month", label: "30 derniers jours" },
+          ]}
+        />
+      </div>
+
+      <div
+        className="inline-flex shrink-0 self-end rounded-full border p-0.5 xl:self-auto"
+        style={{
+          borderColor: "var(--dash-border)",
+          backgroundColor: "transparent",
+        }}
+        role="group"
+        aria-label="Mode d'affichage"
+      >
+        <ViewToggleButton
+          active={viewMode === "kanban"}
+          onClick={() => onViewModeChange("kanban")}
+        >
+          <IconKanban />
+          <span className="hidden sm:inline">Kanban</span>
+        </ViewToggleButton>
+        <ViewToggleButton
+          active={viewMode === "list"}
+          onClick={() => onViewModeChange("list")}
+        >
+          <IconList />
+          <span className="hidden sm:inline">Liste</span>
+        </ViewToggleButton>
       </div>
     </div>
   );

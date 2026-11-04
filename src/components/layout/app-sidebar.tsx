@@ -52,8 +52,9 @@ export function AppSidebar({ open, onNavigate }: AppSidebarProps) {
             }}
           />
         </span>
-        <p className="dash-display text-[20px] leading-none tracking-normal sm:text-[22px]">
-          63 Agency
+        <p className="dash-display text-2xl leading-none">
+          <span style={{ color: "var(--dash-gold-muted)" }}>63</span>
+          <span style={{ color: "var(--dash-sidebar-text)" }}> Agency</span>
         </p>
       </div>
 
@@ -80,10 +81,7 @@ export function AppSidebar({ open, onNavigate }: AppSidebarProps) {
         })}
       </nav>
 
-      <div
-        className="mt-auto border-t px-2.5 pt-3 pb-4 sm:px-3 sm:pb-5"
-        style={{ borderColor: "var(--dash-sidebar-border)" }}
-      >
+      <div className="mt-auto px-2.5 pt-3 pb-4 sm:px-3 sm:pb-5">
         <button
           type="button"
           onClick={logout}
@@ -93,16 +91,25 @@ export function AppSidebar({ open, onNavigate }: AppSidebarProps) {
           <span>{t(locale, "logout")}</span>
         </button>
 
-        <div className="mt-4 px-3">
+        <div
+          className="mx-3 mt-3 border-t pt-3"
+          style={{ borderColor: "var(--dash-sidebar-border)" }}
+        >
           <p
             className="text-[11px] leading-5"
-            style={{ color: "var(--dash-gold-muted)" }}
+            style={{ color: "var(--dash-sidebar-muted)" }}
           >
-            {t(locale, "footerLine1")}
+            {t(locale, "footerPrefix")}{" "}
+            <span
+              className="font-semibold"
+              style={{ color: "var(--dash-sidebar-text)" }}
+            >
+              {t(locale, "footerBrand")}
+            </span>
           </p>
           <p
             className="text-[11px] leading-5"
-            style={{ color: "var(--dash-gold-muted)" }}
+            style={{ color: "var(--dash-sidebar-muted)" }}
           >
             {t(locale, "footerLine2")}
           </p>

@@ -48,7 +48,7 @@ export function FilterDropdown({
   }, [open]);
 
   return (
-    <div className="relative" ref={rootRef}>
+    <div className="relative shrink-0" ref={rootRef}>
       <button
         type="button"
         aria-label={ariaLabel}
@@ -56,9 +56,9 @@ export function FilterDropdown({
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex h-9 max-w-[min(100%,240px)] items-center gap-2 rounded-full border px-3 text-sm font-medium outline-none sm:px-3.5"
+        className="inline-flex h-9 max-w-[min(72vw,240px)] items-center gap-2 rounded-full border px-3 text-sm font-medium outline-none sm:max-w-[240px] sm:px-3.5"
         style={{
-          backgroundColor: "var(--dash-surface)",
+          backgroundColor: "transparent",
           borderColor: "var(--dash-border)",
           color: "var(--dash-text)",
         }}

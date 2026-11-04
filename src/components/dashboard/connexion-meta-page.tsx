@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Instrument_Serif } from "next/font/google";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
@@ -18,11 +17,6 @@ import {
   type MetaPage,
 } from "@/lib/meta-api";
 import { usePortalLocale } from "@/lib/use-portal-locale";
-
-const displaySerif = Instrument_Serif({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 export function ConnexionMetaPageView() {
   const queryClient = useQueryClient();
@@ -230,7 +224,7 @@ function DisconnectedView({
       </span>
 
       <h2
-        className={`${displaySerif.className} mt-5 text-2xl tracking-tight sm:text-3xl`}
+        className={`dash-display mt-5 text-2xl tracking-tight sm:text-3xl`}
         style={{ color: "var(--dash-text)" }}
       >
         Connexion Meta
@@ -337,7 +331,7 @@ function ConnectedView({
       <section className="space-y-3">
         <div>
           <h2
-            className={`${displaySerif.className} text-xl tracking-tight sm:text-2xl`}
+            className={`dash-display text-xl tracking-tight sm:text-2xl`}
             style={{ color: "var(--dash-text)" }}
           >
             Pages & formulaires

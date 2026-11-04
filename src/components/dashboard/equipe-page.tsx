@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { Instrument_Serif } from "next/font/google";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
@@ -29,11 +28,6 @@ import {
 import { usePortalLocale } from "@/lib/use-portal-locale";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import type { TeamMember } from "@/types";
-
-const displaySerif = Instrument_Serif({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 function isEditableMember(member: TeamMember) {
   return member.role === "member" && !member.is_you;
@@ -114,7 +108,7 @@ export function EquipePageView() {
     <section className="dash-v-scroll mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col gap-8 overflow-y-auto pb-4">
       <section className="space-y-4">
         <h2
-          className={`${displaySerif.className} text-2xl tracking-tight sm:text-3xl`}
+          className={`dash-display text-2xl tracking-tight sm:text-3xl`}
           style={{ color: "var(--dash-text)" }}
         >
           Membres de l&apos;équipe
@@ -336,7 +330,7 @@ function AddMemberForm({
     <section className="space-y-4">
       <div>
         <h2
-          className={`${displaySerif.className} text-2xl tracking-tight sm:text-3xl`}
+          className={`dash-display text-2xl tracking-tight sm:text-3xl`}
           style={{ color: "var(--dash-text)" }}
         >
           Ajouter un membre

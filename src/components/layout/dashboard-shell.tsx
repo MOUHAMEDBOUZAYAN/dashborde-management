@@ -35,8 +35,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           dark={dark}
           onToggleTheme={toggleTheme}
         />
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-5 py-4 sm:px-6 sm:py-5 md:px-7 md:py-6 xl:px-8 xl:py-8">
-          <div className="mx-auto flex h-full min-h-0 w-full max-w-[1600px] min-w-0 flex-col">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 py-3 sm:px-4 sm:py-4 md:px-5 md:py-5 xl:px-5 xl:py-6">
+          <div className="flex h-full min-h-0 w-full min-w-0 flex-col">
             {children}
           </div>
         </main>

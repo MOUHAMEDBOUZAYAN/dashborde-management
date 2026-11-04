@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { Instrument_Serif } from "next/font/google";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -49,11 +48,6 @@ import type {
   PipelineStageId,
   TaskType,
 } from "@/types";
-
-const displaySerif = Instrument_Serif({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 type LeadDetailTab = "informations" | "notes" | "suivi";
 
@@ -241,7 +235,7 @@ export function LeadDetailModal({
 
           <div className="min-w-0 flex-1">
             <h2
-              className={`${displaySerif.className} truncate text-xl tracking-tight sm:text-2xl`}
+              className={`dash-display truncate text-xl tracking-tight sm:text-2xl`}
             >
               {lead.name}
             </h2>
