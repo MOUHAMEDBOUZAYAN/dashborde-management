@@ -394,6 +394,18 @@ export async function updateLeadOwner(
   return readLeadEntity(data);
 }
 
+/** Move a lead into another pipeline (Informations tab). */
+export async function moveLeadToPipeline(
+  leadId: string,
+  pipelineId: string,
+): Promise<PipelineLead> {
+  const { data } = await api.patch<unknown>(
+    `/client/leads/${leadId}/pipeline`,
+    { pipeline_id: pipelineId },
+  );
+  return readLeadEntity(data);
+}
+
 export async function deleteLead(leadId: string): Promise<void> {
   await api.delete(`/client/leads/${leadId}`);
 }

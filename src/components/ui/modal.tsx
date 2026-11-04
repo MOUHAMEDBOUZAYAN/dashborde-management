@@ -16,9 +16,11 @@ type ModalProps = {
   /** When false, backdrop click does not close (useful for destructive confirms if desired). */
   closeOnBackdrop?: boolean;
   /** Wider panel for multi-field forms. */
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   /** Skip default title/close chrome — children own the full layout. */
   bare?: boolean;
+  /** Extra classes on the dialog panel (e.g. fixed height flex layout). */
+  panelClassName?: string;
 };
 
 const FOCUSABLE =
@@ -33,17 +35,20 @@ export function Modal({
   closeOnBackdrop = true,
   size = "sm",
   bare = false,
+  panelClassName = "",
 }: ModalProps) {
   const titleId = useId();
   const descriptionId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const sizeClass =
-    size === "lg"
-      ? "max-w-[560px]"
-      : size === "md"
-        ? "max-w-[540px]"
-        : "max-w-[420px]";
+    size === "xl"
+      ? "max-w-3xl"
+      : size === "lg"
+        ? "max-w-[560px]"
+        : size === "md"
+          ? "max-w-[540px]"
+          : "max-w-[420px]";
 
   useEffect(() => {
     if (!open) return;
@@ -116,14 +121,14 @@ export function Modal({
         aria-label={bare ? title ?? "Dialogue" : undefined}
         aria-describedby={!bare && description ? descriptionId : undefined}
         tabIndex={-1}
-        className={`relative z-10 max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl border outline-none sm:rounded-2xl ${sizeClass} ${
-          bare ? "p-0" : "px-4 py-5 sm:px-6 sm:py-6"
-        }`}
+        className={`relative z-10 max-h-[92dvh] w-[calc(100vw-1.5rem)] rounded-xl border outline-none sm:rounded-xl ${
+          panelClassName.includes("overflow-") ? "" : "overflow-y-auto"
+        } ${sizeClass} ${bare ? "p-0" : "px-4 py-5 sm:px-6 sm:py-6"} ${panelClassName}`}
         style={{
           backgroundColor: "var(--dash-surface)",
-          borderColor: "var(--dash-border)",
+          borderColor: "color-mix(in srgb, var(--dash-gold-muted) 40%, transparent)",
           color: "var(--dash-text)",
-          boxShadow: "var(--dash-shadow)",
+          boxShadow: "0 40px 90px -30px rgba(0, 0, 0, 0.6)",
         }}
       >
         {bare ? (

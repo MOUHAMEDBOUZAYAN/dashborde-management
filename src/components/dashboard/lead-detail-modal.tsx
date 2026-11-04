@@ -30,6 +30,7 @@ import {
   isStageCompleted,
   leadActivityQueryKey,
   leadNotesQueryKey,
+  moveLeadToPipeline,
   PIPELINE_STAGES,
   REMINDER_ACTIONS,
   activityKindLabel,
@@ -37,6 +38,7 @@ import {
   scheduleLeadReminder,
   updateLeadOwner,
 } from "@/lib/pipeline-api";
+import { fetchPipelines, pipelinesQueryKey } from "@/lib/pipelines-api";
 import { readErrorMessage } from "@/lib/auth-api";
 import { invalidateClientStats } from "@/lib/stats-api";
 import { tasksQueryKey } from "@/lib/tasks-api";
@@ -44,6 +46,7 @@ import { useAuthStore } from "@/store/auth-store";
 import type {
   LeadActivity,
   LeadActivityKind,
+  Pipeline,
   PipelineLead,
   PipelineStageId,
   TaskType,
@@ -61,6 +64,8 @@ type LeadDetailModalProps = {
   onClose: () => void;
   onStageChange: (stage: PipelineStageId) => void;
   onOwnerChange?: (owner: string) => void;
+  /** Called after the lead is moved to another pipeline. */
+  onPipelineChange?: (pipelineId: string) => void;
   onEdit?: () => void;
   onDelete?: () => void;
 };
@@ -74,6 +79,7 @@ export function LeadDetailModal({
   onClose,
   onStageChange,
   onOwnerChange,
+  onPipelineChange,
   onEdit,
   onDelete,
 }: LeadDetailModalProps) {
@@ -102,10 +108,42 @@ export function LeadDetailModal({
     enabled: open && Boolean(lead?.id),
   });
 
+  const pipelinesQuery = useQuery({
+    queryKey: pipelinesQueryKey,
+    queryFn: fetchPipelines,
+    enabled: open,
+  });
+
   const ownerMutation = useMutation({
     mutationFn: (owner: string) => updateLeadOwner(lead!.id, owner, actor),
     onSuccess: async (updated) => {
       onOwnerChange?.(updated.owner);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: pipelineLeadsQueryKey("all"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: leadActivityQueryKey(lead!.id),
+        }),
+        invalidateClientStats(queryClient),
+      ]);
+    },
+  });
+
+  const pipelineMutation = useMutation({
+    mutationFn: (pipelineId: string) =>
+      moveLeadToPipeline(lead!.id, pipelineId),
+    onSuccess: async (updated) => {
+      onPipelineChange?.(updated.pipeline_id);
+      queryClient.setQueryData<PipelineLead[]>(
+        pipelineLeadsQueryKey("all"),
+        (current) =>
+          (current ?? []).map((item) =>
+            item.id === updated.id
+              ? { ...item, pipeline_id: updated.pipeline_id }
+              : item,
+          ),
+      );
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: pipelineLeadsQueryKey("all"),
@@ -187,8 +225,19 @@ export function LeadDetailModal({
   const notesError = notesQuery.isError
     ? readErrorMessage(notesQuery.error, "Impossible de charger les notes.")
     : null;
+  const pipelineError = pipelineMutation.isError
+    ? readErrorMessage(
+        pipelineMutation.error,
+        "Impossible de déplacer le lead vers ce pipeline.",
+      )
+    : null;
 
   if (!open || !lead) return null;
+
+  const pipelines = pipelinesQuery.data ?? [];
+  const currentPipeline = pipelines.find(
+    (item) => item.id === lead.pipeline_id,
+  );
 
   const stage = getStageById(lead.stage);
   const dateLabel = formatLeadDateTimeFr(lead.date);
@@ -204,190 +253,275 @@ export function LeadDetailModal({
   const notes = notesQuery.data ?? [];
   const contactMinutes = firstContactAfterMinutes(lead, activities);
 
+  const pillClass =
+    "inline-flex items-center gap-1.5 shrink-0 rounded-full border px-2.5 py-0.5 text-xs";
+
   return (
-    <Modal open bare size="lg" title={lead.name} onClose={onClose}>
-      <div className="relative px-5 pt-5 pb-4 sm:px-6 sm:pt-6">
-        <button
-          type="button"
-          aria-label="Fermer"
-          onClick={onClose}
-          className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border text-sm"
+    <Modal
+      open
+      bare
+      size="xl"
+      title={lead.name}
+      onClose={onClose}
+      panelClassName="flex h-[88vh] max-h-[88vh] flex-col overflow-hidden"
+    >
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div
+          className="relative shrink-0 border-b px-6 pt-6 sm:px-8"
           style={{
             borderColor: "var(--dash-border)",
-            color: "var(--dash-muted)",
-            backgroundColor: "var(--dash-field)",
+            background:
+              "linear-gradient(to bottom, color-mix(in srgb, var(--dash-gold-muted) 8%, transparent), transparent)",
           }}
         >
-          ×
-        </button>
-
-        <div className="flex items-start gap-3.5 pr-8">
           <span
-            className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-base font-bold tracking-wide"
-            style={{
-              backgroundColor: "var(--dash-nav-active-bg)",
-              color: "var(--dash-nav-active-text)",
-            }}
             aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, color-mix(in srgb, var(--dash-gold-muted) 70%, transparent), transparent)",
+            }}
+          />
+
+          <button
+            type="button"
+            aria-label="Fermer"
+            onClick={onClose}
+            className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full text-sm"
+            style={{ color: "var(--dash-muted)" }}
           >
-            {initials}
-          </span>
+            ×
+          </button>
 
-          <div className="min-w-0 flex-1">
-            <h2
-              className={`dash-display truncate text-xl tracking-tight sm:text-2xl`}
+          <div className="flex items-start gap-4 pe-10">
+            <span
+              className="dash-display inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-xl font-semibold"
+              style={{
+                backgroundColor: "var(--dash-nav-active-bg)",
+                color: "var(--dash-nav-active-text)",
+                boxShadow:
+                  "0 0 0 2px color-mix(in srgb, var(--dash-gold-muted) 50%, transparent), 0 0 0 4px var(--dash-surface)",
+              }}
+              aria-hidden
             >
-              {lead.name}
-            </h2>
+              {initials}
+            </span>
 
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium"
-                style={{
-                  borderColor: "var(--dash-border)",
-                  color: "var(--dash-text)",
-                  backgroundColor: "var(--dash-field)",
-                }}
+            <div className="min-w-0 flex-1">
+              <h2 className="dash-display truncate text-3xl font-semibold leading-tight">
+                {lead.name}
+              </h2>
+
+              <div
+                className="mt-2 flex flex-wrap items-center gap-2 text-xs"
+                style={{ color: "var(--dash-muted)" }}
               >
                 <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: stage?.color ?? "#a78bfa" }}
-                  aria-hidden
-                />
-                {stage?.label ?? lead.stage}
-              </span>
+                  className={pillClass}
+                  style={{
+                    borderColor: "var(--dash-border)",
+                    backgroundColor:
+                      "color-mix(in srgb, var(--dash-surface) 70%, transparent)",
+                    color: "var(--dash-text)",
+                  }}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: stage?.color ?? "#a78bfa" }}
+                    aria-hidden
+                  />
+                  {stage?.label ?? lead.stage}
+                </span>
 
-              {dateLabel ? (
-                <span
-                  className="inline-flex items-center gap-1.5"
+                {pipelines.length > 1 && currentPipeline ? (
+                  <span
+                    className={pillClass}
+                    style={{
+                      borderColor: "var(--dash-border)",
+                      backgroundColor:
+                        "color-mix(in srgb, var(--dash-surface) 70%, transparent)",
+                      color: "var(--dash-text)",
+                    }}
+                  >
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: currentPipeline.color }}
+                      aria-hidden
+                    />
+                    {currentPipeline.name}
+                  </span>
+                ) : null}
+
+                {lead.campaign ? (
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <IconCampaign className="h-3.5 w-3.5 shrink-0" />
+                    <span className="max-w-[14rem] truncate">{lead.campaign}</span>
+                  </span>
+                ) : null}
+
+                {dateLabel ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <IconClock className="h-3.5 w-3.5 shrink-0" />
+                    {dateLabel}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            {lead.estimated_value != null && lead.estimated_value > 0 ? (
+              <div className="hidden shrink-0 text-end sm:block">
+                <p
+                  className="text-[10px] uppercase tracking-[0.18em]"
                   style={{ color: "var(--dash-muted)" }}
                 >
-                  <IconRefresh className="h-3.5 w-3.5" />
-                  <IconClock className="h-3.5 w-3.5" />
-                  {dateLabel}
-                </span>
+                  Valeur estimée
+                </p>
+                <p
+                  className="dash-display text-2xl font-semibold"
+                  style={{ color: "var(--dash-gold-muted)" }}
+                >
+                  {lead.estimated_value.toLocaleString("fr-FR")}{" "}
+                  <span
+                    className="font-sans text-xs"
+                    style={{ color: "var(--dash-muted)" }}
+                  >
+                    MAD
+                  </span>
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <ActionPill
+              href={phoneHref}
+              primary
+              disabled={!phoneHref}
+              icon={<IconPhone className="h-4 w-4" />}
+              label="Appeler"
+            />
+            <ActionPill
+              href={whatsappHref}
+              disabled={!whatsappHref}
+              icon={<IconWhatsApp className="h-4 w-4" />}
+              label="WhatsApp"
+              external
+            />
+            <ActionPill
+              href={emailHref}
+              disabled={!emailHref}
+              icon={<IconMail className="h-4 w-4" />}
+              label="Email"
+            />
+          </div>
+
+          <div
+            className="mt-5 flex gap-7 border-b"
+            style={{ borderColor: "var(--dash-border)" }}
+            role="tablist"
+            aria-label="Sections du lead"
+          >
+            <TabButton
+              active={tab === "informations"}
+              icon={<IconInfo className="h-4 w-4" />}
+              label="Informations"
+              onClick={() => setTab("informations")}
+            />
+            <TabButton
+              active={tab === "notes"}
+              icon={<IconDocument className="h-4 w-4" />}
+              label="Notes"
+              badge={notes.length > 0 ? notes.length : undefined}
+              onClick={() => setTab("notes")}
+            />
+            <TabButton
+              active={tab === "suivi"}
+              icon={<IconRefresh className="h-4 w-4" />}
+              label="Suivi"
+              onClick={() => setTab("suivi")}
+            />
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-8 overflow-y-auto px-6 py-7 sm:px-8">
+          {tab === "informations" ? (
+            <>
+              <InformationsTab
+                lead={lead}
+                dateLabel={dateLabel}
+                pipelines={pipelines}
+                submitting={submitting || pipelineMutation.isPending}
+                pipelineBusy={pipelineMutation.isPending}
+                pipelineError={pipelineError}
+                onStageChange={onStageChange}
+                onPipelineChange={(pipelineId) => {
+                  if (pipelineId === lead.pipeline_id) return;
+                  pipelineMutation.mutate(pipelineId);
+                }}
+              />
+              {onEdit || onDelete ? (
+                <div
+                  className="flex flex-wrap items-center gap-4 border-t pt-4"
+                  style={{ borderColor: "var(--dash-border)" }}
+                >
+                  {onEdit ? (
+                    <button
+                      type="button"
+                      disabled={deleting || submitting}
+                      onClick={onEdit}
+                      className="inline-flex items-center gap-2 text-sm font-medium disabled:opacity-50"
+                      style={{ color: "var(--dash-text)" }}
+                    >
+                      <IconPencil className="h-4 w-4" />
+                      Modifier le lead
+                    </button>
+                  ) : null}
+                  {onDelete ? (
+                    <button
+                      type="button"
+                      disabled={deleting || submitting}
+                      onClick={onDelete}
+                      className="inline-flex items-center gap-2 text-sm font-medium disabled:opacity-50"
+                      style={{ color: "var(--dash-danger)" }}
+                    >
+                      <IconTrash className="h-4 w-4" />
+                      {deleting ? "Suppression…" : "Supprimer le lead"}
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
-            </div>
-          </div>
+            </>
+          ) : null}
+
+          {tab === "notes" ? (
+            <NotesTab
+              lead={lead}
+              assignees={assignees}
+              notes={notes}
+              contactMinutes={contactMinutes}
+              ownerBusy={ownerMutation.isPending}
+              ownerError={ownerError}
+              noteBusy={noteMutation.isPending}
+              noteError={noteError}
+              notesError={notesError}
+              reminderBusy={reminderMutation.isPending}
+              reminderError={reminderError}
+              onOwnerChange={(owner) => ownerMutation.mutate(owner)}
+              onAddNote={(body) => noteMutation.mutateAsync(body)}
+              onScheduleReminder={(input) =>
+                reminderMutation.mutateAsync(input)
+              }
+            />
+          ) : null}
+
+          {tab === "suivi" ? (
+            <SuiviTab
+              loading={activityQuery.isLoading}
+              error={activityError}
+              activities={activities}
+            />
+          ) : null}
         </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <ActionPill
-            href={phoneHref}
-            primary
-            disabled={!phoneHref}
-            icon={<IconPhone className="h-3.5 w-3.5" />}
-            label="Appeler"
-          />
-          <ActionPill
-            href={whatsappHref}
-            disabled={!whatsappHref}
-            icon={<IconWhatsApp className="h-3.5 w-3.5" />}
-            label="WhatsApp"
-            external
-          />
-          <ActionPill
-            href={emailHref}
-            disabled={!emailHref}
-            icon={<IconMail className="h-3.5 w-3.5" />}
-            label="Email"
-          />
-        </div>
-
-        <div
-          className="mt-5 flex gap-1 border-b"
-          style={{ borderColor: "var(--dash-border)" }}
-          role="tablist"
-          aria-label="Sections du lead"
-        >
-          <TabButton
-            active={tab === "informations"}
-            icon={<IconInfo className="h-3.5 w-3.5" />}
-            label="Informations"
-            onClick={() => setTab("informations")}
-          />
-          <TabButton
-            active={tab === "notes"}
-            icon={<IconDocument className="h-3.5 w-3.5" />}
-            label="Notes"
-            onClick={() => setTab("notes")}
-          />
-          <TabButton
-            active={tab === "suivi"}
-            icon={<IconClock className="h-3.5 w-3.5" />}
-            label="Suivi"
-            onClick={() => setTab("suivi")}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-5 px-5 pb-5 sm:px-6 sm:pb-6">
-        {tab === "informations" ? (
-          <InformationsTab
-            lead={lead}
-            dateLabel={dateLabel}
-            submitting={submitting}
-            onStageChange={onStageChange}
-          />
-        ) : null}
-
-        {tab === "notes" ? (
-          <NotesTab
-            lead={lead}
-            assignees={assignees}
-            notes={notes}
-            contactMinutes={contactMinutes}
-            ownerBusy={ownerMutation.isPending}
-            ownerError={ownerError}
-            noteBusy={noteMutation.isPending}
-            noteError={noteError}
-            notesError={notesError}
-            reminderBusy={reminderMutation.isPending}
-            reminderError={reminderError}
-            onOwnerChange={(owner) => ownerMutation.mutate(owner)}
-            onAddNote={(body) => noteMutation.mutateAsync(body)}
-            onScheduleReminder={(input) =>
-              reminderMutation.mutateAsync(input)
-            }
-          />
-        ) : null}
-
-        {tab === "suivi" ? (
-          <SuiviTab
-            loading={activityQuery.isLoading}
-            error={activityError}
-            activities={activities}
-          />
-        ) : null}
-
-        {tab === "informations" && (onEdit || onDelete) ? (
-          <div className="flex flex-wrap items-center gap-4">
-            {onEdit ? (
-              <button
-                type="button"
-                disabled={deleting || submitting}
-                onClick={onEdit}
-                className="inline-flex items-center gap-2 text-sm font-medium disabled:opacity-50"
-                style={{ color: "var(--dash-text)" }}
-              >
-                <IconPencil className="h-4 w-4" />
-                Modifier le lead
-              </button>
-            ) : null}
-            {onDelete ? (
-              <button
-                type="button"
-                disabled={deleting || submitting}
-                onClick={onDelete}
-                className="inline-flex items-center gap-2 text-sm font-medium disabled:opacity-50"
-                style={{ color: "#ef4444" }}
-              >
-                <IconTrash className="h-4 w-4" />
-                {deleting ? "Suppression…" : "Supprimer le lead"}
-              </button>
-            ) : null}
-          </div>
-        ) : null}
       </div>
     </Modal>
   );
@@ -396,112 +530,158 @@ export function LeadDetailModal({
 function InformationsTab({
   lead,
   dateLabel,
+  pipelines,
   submitting,
+  pipelineBusy,
+  pipelineError,
   onStageChange,
+  onPipelineChange,
 }: {
   lead: PipelineLead;
   dateLabel: string;
+  pipelines: Pipeline[];
   submitting: boolean;
+  pipelineBusy: boolean;
+  pipelineError: string | null;
   onStageChange: (stage: PipelineStageId) => void;
+  onPipelineChange: (pipelineId: string) => void;
 }) {
+  const currentPipeline = pipelines.find((item) => item.id === lead.pipeline_id);
+  const showPipelineSelect = pipelines.length > 1;
+
   return (
-    <>
+    <div className="space-y-8">
+      {showPipelineSelect ? (
+        <section>
+          <h3
+            className="mb-3 text-[11px] font-semibold tracking-wider uppercase"
+            style={{ color: "var(--dash-muted)" }}
+          >
+            Pipeline
+          </h3>
+          <div className="flex items-center gap-2.5">
+            <span
+              className="h-3 w-3 shrink-0 rounded-full"
+              style={{
+                backgroundColor: currentPipeline?.color ?? "var(--dash-gold-muted)",
+              }}
+              aria-hidden
+            />
+            <select
+              value={lead.pipeline_id}
+              disabled={pipelineBusy || submitting}
+              onChange={(event) => onPipelineChange(event.target.value)}
+              className="h-10 w-full rounded-md border px-3 text-sm outline-none disabled:opacity-60"
+              style={{
+                borderColor: "var(--dash-border)",
+                backgroundColor: "var(--dash-surface)",
+                color: "var(--dash-text)",
+              }}
+              aria-label="Déplacer vers un autre pipeline"
+            >
+              {pipelines.map((pipeline) => (
+                <option key={pipeline.id} value={pipeline.id}>
+                  {pipeline.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {pipelineError ? (
+            <p className="mt-2 text-sm" style={{ color: "#f87171" }} role="alert">
+              {pipelineError}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
       <section>
-        <p
-          className="mb-2.5 text-[11px] font-semibold tracking-[0.14em] uppercase"
+        <h3
+          className="mb-3 text-[11px] font-semibold tracking-wider uppercase"
           style={{ color: "var(--dash-muted)" }}
         >
           Entonnoir
-        </p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        </h3>
+        <ol className="grid grid-cols-4 gap-1.5">
           {PIPELINE_STAGES.map((item) => {
             const active = lead.stage === item.id;
-            const completed = isStageCompleted(item.id, lead.stage);
+            const completed =
+              isStageCompleted(item.id, lead.stage) && lead.stage !== "perdu";
             return (
-              <button
-                key={item.id}
-                type="button"
-                disabled={submitting}
-                aria-pressed={active}
-                aria-label={
-                  completed
-                    ? `${item.label} (terminé)`
-                    : active
-                      ? `${item.label} (actuel)`
-                      : item.label
-                }
-                onClick={() => onStageChange(item.id)}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border px-2.5 text-left text-xs font-medium transition-colors disabled:opacity-60"
-                style={
-                  active
-                    ? {
-                        backgroundColor: `color-mix(in srgb, ${item.color} 14%, var(--dash-surface))`,
-                        borderColor: item.color,
-                        color: "var(--dash-text)",
-                        boxShadow: `0 0 0 1px color-mix(in srgb, ${item.color} 35%, transparent)`,
-                      }
-                    : completed
-                      ? {
-                          backgroundColor: `color-mix(in srgb, ${item.color} 10%, var(--dash-field))`,
-                          borderColor: `color-mix(in srgb, ${item.color} 55%, var(--dash-border))`,
-                          color: "var(--dash-muted)",
-                        }
-                      : {
-                          backgroundColor: "var(--dash-field)",
-                          borderColor: "var(--dash-border)",
-                          color: "var(--dash-text)",
-                        }
-                }
-              >
-                {completed && !active ? (
-                  <span
-                    className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full"
-                    style={{
-                      backgroundColor: `color-mix(in srgb, ${item.color} 22%, transparent)`,
-                      color: item.color,
-                    }}
-                    aria-hidden
-                  >
-                    <IconCheck className="h-2.5 w-2.5" />
+              <li key={item.id}>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  aria-pressed={active}
+                  onClick={() => onStageChange(item.id)}
+                  className="flex h-full w-full flex-col items-center rounded-md border px-1.5 py-2 text-center transition-colors disabled:opacity-60"
+                  style={{
+                    backgroundColor:
+                      active || completed
+                        ? `color-mix(in srgb, ${item.color} ${active ? "22%" : "10%"}, transparent)`
+                        : "transparent",
+                    borderColor: active ? item.color : "var(--dash-border)",
+                    color: active ? "var(--dash-text)" : "var(--dash-muted)",
+                  }}
+                >
+                  <span className="mb-1 flex justify-center">
+                    {completed && !active ? (
+                      <IconCheck
+                        className="h-3.5 w-3.5"
+                        style={{ color: item.color }}
+                      />
+                    ) : (
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{
+                          backgroundColor: item.color,
+                          opacity: active ? 1 : 0.45,
+                        }}
+                        aria-hidden
+                      />
+                    )}
                   </span>
-                ) : (
                   <span
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                    aria-hidden
-                  />
-                )}
-                <span className="truncate">{item.label}</span>
-              </button>
+                    className={`block text-[11px] leading-tight ${
+                      active ? "font-semibold" : ""
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ol>
       </section>
 
       <section>
-        <p
-          className="mb-2.5 text-[11px] font-semibold tracking-[0.14em] uppercase"
+        <h3
+          className="mb-3 text-[11px] font-semibold tracking-wider uppercase"
           style={{ color: "var(--dash-muted)" }}
         >
           Coordonnées
-        </p>
+        </h3>
         <div
-          className="overflow-hidden rounded-2xl border"
+          className="overflow-hidden rounded-lg border px-4"
           style={{
             borderColor: "var(--dash-border)",
-            backgroundColor: "var(--dash-field)",
+            backgroundColor: "var(--dash-surface)",
           }}
         >
-          <CoordRow
-            icon={<IconPhone className="h-4 w-4" />}
-            label="Téléphone"
-            value={lead.phone || "—"}
-          />
-          <CoordRow
-            icon={<IconMail className="h-4 w-4" />}
-            label="Email"
-            value={lead.email || "—"}
-          />
+          {lead.phone ? (
+            <CoordRow
+              icon={<IconPhone className="h-4 w-4" />}
+              label="Téléphone"
+              value={lead.phone}
+            />
+          ) : null}
+          {lead.email ? (
+            <CoordRow
+              icon={<IconMail className="h-4 w-4" />}
+              label="Email"
+              value={lead.email}
+            />
+          ) : null}
           <CoordRow
             icon={<IconCampaign className="h-4 w-4" />}
             label="Campagne"
@@ -511,11 +691,19 @@ function InformationsTab({
             icon={<IconCalendar className="h-4 w-4" />}
             label="Reçu le"
             value={dateLabel || "—"}
-            last
+            last={!(lead.estimated_value != null && lead.estimated_value > 0)}
           />
+          {lead.estimated_value != null && lead.estimated_value > 0 ? (
+            <CoordRow
+              icon={<IconDocument className="h-4 w-4" />}
+              label="Valeur estimée"
+              value={`${lead.estimated_value.toLocaleString("fr-FR")} MAD`}
+              last
+            />
+          ) : null}
         </div>
       </section>
-    </>
+    </div>
   );
 }
 
@@ -586,16 +774,16 @@ function NotesTab({
   }
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-8">
       <section
-        className="rounded-2xl border p-3.5"
+        className="rounded-lg border p-3"
         style={{
           borderColor: "var(--dash-border)",
-          backgroundColor: "var(--dash-field)",
+          backgroundColor: "var(--dash-surface)",
         }}
       >
         <p
-          className="mb-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] uppercase"
+          className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wider uppercase"
           style={{ color: "var(--dash-muted)" }}
         >
           <IconUser className="h-3.5 w-3.5" />
@@ -636,15 +824,9 @@ function NotesTab({
         </p>
       </section>
 
-      <section
-        className="rounded-2xl border p-3.5"
-        style={{
-          borderColor: "var(--dash-border)",
-          backgroundColor: "var(--dash-field)",
-        }}
-      >
+      <div>
         <div
-          className="rounded-xl border p-3"
+          className="rounded-lg border p-3 shadow-sm"
           style={{
             borderColor: "var(--dash-border)",
             backgroundColor: "var(--dash-surface)",
@@ -653,24 +835,28 @@ function NotesTab({
           <textarea
             value={noteBody}
             onChange={(event) => setNoteBody(event.target.value)}
-            rows={4}
-            placeholder="Écrire une note sur ce lead..."
-            className="w-full resize-none bg-transparent text-sm outline-none placeholder:opacity-60"
+            rows={3}
+            placeholder="Écrire une note sur ce lead…"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                void handleAddNote();
+              }
+            }}
+            className="w-full resize-none bg-transparent p-1 text-sm outline-none placeholder:opacity-60"
             style={{ color: "var(--dash-text)" }}
           />
-          <div className="mt-2 flex justify-end">
+          <div className="flex justify-end pt-2">
             <button
               type="button"
               disabled={noteBusy || !noteBody.trim()}
               onClick={() => void handleAddNote()}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold disabled:opacity-40"
+              className="inline-flex h-9 items-center gap-2 rounded-full px-3.5 text-xs font-semibold disabled:opacity-40"
               style={{
-                borderColor: "var(--dash-border)",
-                backgroundColor: "color-mix(in srgb, var(--dash-text) 12%, transparent)",
-                color: "var(--dash-text)",
+                backgroundColor: "var(--dash-text)",
+                color: "var(--dash-bg)",
               }}
             >
-              <IconSend className="h-3.5 w-3.5" />
+              <IconSend className="h-4 w-4" />
               {noteBusy ? "Ajout…" : "Ajouter la note"}
             </button>
           </div>
@@ -688,37 +874,55 @@ function NotesTab({
         ) : null}
 
         {notes.length === 0 && !notesError ? (
-          <p className="mt-3 text-sm" style={{ color: "var(--dash-muted)" }}>
-            Aucune note pour le moment
+          <p className="mt-4 text-sm" style={{ color: "var(--dash-muted)" }}>
+            Aucune note pour le moment.
           </p>
         ) : notes.length > 0 ? (
-          <ul className="mt-3 space-y-2.5">
+          <ul className="mt-5 space-y-4">
             {notes.map((note) => (
-              <li
-                key={note.id}
-                className="rounded-xl border px-3 py-2.5"
-                style={{
-                  borderColor: "var(--dash-border)",
-                  backgroundColor: "var(--dash-surface)",
-                }}
-              >
-                <p className="text-sm whitespace-pre-wrap" style={{ color: "var(--dash-text)" }}>
-                  {note.body}
-                </p>
-                <p className="mt-1.5 text-[11px]" style={{ color: "var(--dash-muted)" }}>
-                  {note.author} · {formatLeadDateTimeFr(note.created_at)}
-                </p>
+              <li key={note.id} className="flex gap-3">
+                <span
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
+                  style={{
+                    backgroundColor: "var(--dash-nav-active-bg)",
+                    color: "var(--dash-nav-active-text)",
+                  }}
+                >
+                  {initialsFromName(note.author || "?")}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs" style={{ color: "var(--dash-muted)" }}>
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: "var(--dash-text)" }}
+                    >
+                      {note.author || "Équipe"}
+                    </span>{" "}
+                    · {formatLeadDateTimeFr(note.created_at)}
+                  </p>
+                  <p
+                    className="mt-1.5 rounded-lg rounded-ss-none border px-3 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap"
+                    style={{
+                      borderColor: "var(--dash-border)",
+                      backgroundColor:
+                        "color-mix(in srgb, var(--dash-muted) 12%, transparent)",
+                      color: "var(--dash-text)",
+                    }}
+                  >
+                    {note.body}
+                  </p>
+                </div>
               </li>
             ))}
           </ul>
         ) : null}
-      </section>
+      </div>
 
       <section
-        className="rounded-2xl border p-3.5"
+        className="space-y-4 rounded-xl border p-4 shadow-sm"
         style={{
           borderColor: "var(--dash-border)",
-          backgroundColor: "var(--dash-field)",
+          backgroundColor: "var(--dash-surface)",
         }}
       >
         <p
@@ -878,72 +1082,72 @@ function SuiviTab({
   }
 
   return (
-    <section>
-      <h3 className="text-base font-semibold" style={{ color: "var(--dash-text)" }}>
+    <div>
+      <div
+        className="mb-1 flex items-center gap-2 text-sm font-semibold"
+        style={{ color: "var(--dash-text)" }}
+      >
+        <IconRefresh
+          className="h-4 w-4"
+          style={{ color: "var(--dash-gold-muted)" }}
+        />
         Suivi des actions
-      </h3>
-      <p className="mt-1 text-sm" style={{ color: "var(--dash-muted)" }}>
+      </div>
+      <p className="mb-5 text-xs" style={{ color: "var(--dash-muted)" }}>
         Tout ce qui a été fait sur ce lead, par qui et quand.
       </p>
 
       {activities.length === 0 ? (
         <p
-          className="mt-6 rounded-2xl border px-4 py-8 text-center text-sm"
+          className="rounded-xl border px-4 py-8 text-center text-sm"
           style={{
             borderColor: "var(--dash-border)",
-            backgroundColor: "var(--dash-field)",
+            backgroundColor: "var(--dash-surface)",
             color: "var(--dash-muted)",
           }}
         >
           Aucune action pour le moment.
         </p>
       ) : (
-        <ol className="mt-4 space-y-0">
-          {activities.map((activity, index) => (
-            <li key={activity.id} className="flex gap-3">
-              <div className="flex w-8 flex-col items-center">
-                <span
-                  className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border"
-                  style={{
-                    borderColor: "var(--dash-border)",
-                    backgroundColor: "var(--dash-field)",
-                    color: "var(--dash-gold-muted)",
-                  }}
-                  aria-hidden
-                  title={activityKindLabel(activity.kind)}
-                >
-                  {activityKindIcon(activity.kind)}
-                </span>
-                {index < activities.length - 1 ? (
-                  <span
-                    className="mt-1 w-px flex-1"
-                    style={{ backgroundColor: "var(--dash-border)" }}
-                    aria-hidden
-                  />
-                ) : null}
-              </div>
-              <div
-                className={`min-w-0 flex-1 ${index < activities.length - 1 ? "pb-4" : ""}`}
+        <ol className="relative space-y-4 before:absolute before:top-2 before:bottom-2 before:start-[13px] before:w-px before:bg-[var(--dash-border)]">
+          {activities.map((activity) => (
+            <li key={activity.id} className="relative flex gap-3">
+              <span
+                className="relative z-10 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border"
+                style={{
+                  borderColor: "var(--dash-border)",
+                  backgroundColor: "var(--dash-surface)",
+                  color: "var(--dash-muted)",
+                }}
+                aria-hidden
+                title={activityKindLabel(activity.kind)}
               >
-                <p
-                  className="text-[11px] font-semibold tracking-[0.08em] uppercase"
-                  style={{ color: "var(--dash-muted)" }}
-                >
-                  {activityKindLabel(activity.kind)}
-                </p>
-                <p
-                  className="mt-0.5 text-sm font-medium"
-                  style={{ color: "var(--dash-text)" }}
-                >
-                  {activity.message}
+                {activityKindIcon(activity.kind)}
+              </span>
+              <div className="min-w-0 flex-1 pt-0.5">
+                <p className="text-sm leading-snug">
+                  <span
+                    className="font-medium"
+                    style={{ color: "var(--dash-text)" }}
+                  >
+                    {activity.actor || "Équipe"}
+                  </span>{" "}
+                  <span style={{ color: "var(--dash-muted)" }}>
+                    {activity.message}
+                  </span>
                 </p>
                 {activity.detail ? (
-                  <p className="mt-0.5 text-xs" style={{ color: "var(--dash-muted)" }}>
+                  <p
+                    className="mt-0.5 line-clamp-2 text-xs break-words"
+                    style={{ color: "var(--dash-muted)" }}
+                  >
                     {activity.detail}
                   </p>
                 ) : null}
-                <p className="mt-1 text-xs" style={{ color: "var(--dash-muted)" }}>
-                  {activity.actor ? `${activity.actor} · ` : null}
+                <p
+                  className="mt-0.5 text-[11px]"
+                  style={{ color: "var(--dash-muted)", opacity: 0.85 }}
+                >
                   {formatLeadDateTimeFr(activity.created_at)}
                 </p>
               </div>
@@ -951,7 +1155,7 @@ function SuiviTab({
           ))}
         </ol>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -1011,11 +1215,13 @@ function TabButton({
   active,
   label,
   icon,
+  badge,
   onClick,
 }: {
   active: boolean;
   label: string;
   icon: ReactNode;
+  badge?: number;
   onClick: () => void;
 }) {
   return (
@@ -1024,7 +1230,7 @@ function TabButton({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className="-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors"
+      className="-mb-px inline-flex items-center gap-2 border-b-2 bg-transparent px-1 pt-2 pb-3 text-[13px] font-medium transition-colors"
       style={{
         borderColor: active ? "var(--dash-gold-muted)" : "transparent",
         color: active ? "var(--dash-text)" : "var(--dash-muted)",
@@ -1032,6 +1238,18 @@ function TabButton({
     >
       {icon}
       {label}
+      {badge != null ? (
+        <span
+          className="rounded-full px-1.5 text-[11px] font-semibold"
+          style={{
+            backgroundColor:
+              "color-mix(in srgb, var(--dash-gold-muted) 18%, transparent)",
+            color: "var(--dash-text)",
+          }}
+        >
+          {badge}
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -1049,20 +1267,20 @@ function CoordRow({
 }) {
   return (
     <div
-      className="flex items-center gap-3 px-3.5 py-3"
+      className="flex items-start gap-3 py-2.5"
       style={{
         borderBottom: last ? undefined : "1px solid var(--dash-border)",
       }}
     >
-      <span style={{ color: "var(--dash-muted)" }} aria-hidden>
+      <span className="mt-0.5" style={{ color: "var(--dash-muted)" }} aria-hidden>
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px]" style={{ color: "var(--dash-muted)" }}>
+        <p className="text-xs" style={{ color: "var(--dash-muted)" }}>
           {label}
         </p>
         <p
-          className="truncate text-sm font-medium"
+          className="text-sm font-medium break-words"
           style={{ color: "var(--dash-text)" }}
         >
           {value}

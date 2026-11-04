@@ -60,12 +60,8 @@ export function AppHeader({ onMenuClick, dark, onToggleTheme }: AppHeaderProps) 
         <button
           type="button"
           aria-label={t(locale, "notifications")}
-          className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{
-            borderColor: "var(--dash-border)",
-            color: "var(--dash-muted)",
-            backgroundColor: "var(--dash-surface)",
-          }}
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-transparent transition-colors hover:bg-[color-mix(in_srgb,var(--dash-text)_10%,transparent)]"
+          style={{ color: "var(--dash-muted)" }}
         >
           <IconBell />
         </button>
@@ -79,12 +75,8 @@ export function AppHeader({ onMenuClick, dark, onToggleTheme }: AppHeaderProps) 
           title={
             locale === "fr" ? t(locale, "switchToEn") : t(locale, "switchToFr")
           }
-          className="inline-flex h-9 min-w-9 items-center justify-center rounded-full border px-2.5 text-xs font-semibold tracking-wide sm:px-3"
-          style={{
-            borderColor: "var(--dash-border)",
-            color: "var(--dash-text)",
-            backgroundColor: "var(--dash-surface)",
-          }}
+          className="inline-flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-full bg-transparent px-2.5 text-xs font-semibold tracking-wide transition-colors hover:bg-[color-mix(in_srgb,var(--dash-text)_10%,transparent)] sm:px-3"
+          style={{ color: "var(--dash-text)" }}
         >
           {locale === "fr" ? "EN" : "FR"}
         </button>
@@ -93,12 +85,8 @@ export function AppHeader({ onMenuClick, dark, onToggleTheme }: AppHeaderProps) 
           type="button"
           onClick={onToggleTheme}
           aria-label={dark ? t(locale, "themeToLight") : t(locale, "themeToDark")}
-          className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{
-            borderColor: "var(--dash-border)",
-            color: "var(--dash-muted)",
-            backgroundColor: "var(--dash-surface)",
-          }}
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-transparent transition-colors hover:bg-[color-mix(in_srgb,var(--dash-text)_10%,transparent)]"
+          style={{ color: "var(--dash-muted)" }}
         >
           {dark ? <IconSun /> : <IconMoon />}
         </button>
