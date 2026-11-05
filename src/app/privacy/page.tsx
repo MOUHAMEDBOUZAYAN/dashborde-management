@@ -1,93 +1,91 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  LegalPageShell,
-  LegalSection,
-} from "@/components/legal/legal-page-shell";
+import { LegalSection, LegalShell } from "@/components/legal/legal-shell";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité — 63 Agency",
   description:
     "Politique de confidentialité du portail client 63 Agency (client.63agency.com).",
-  robots: { index: true, follow: true },
 };
-
-const UPDATED_AT = "5 novembre 2026";
 
 export default function PrivacyPage() {
   return (
-    <LegalPageShell title="Politique de confidentialité">
+    <LegalShell title="Politique de confidentialité">
       <LegalSection title="Introduction">
         <p>
-          63 Agency exploite ce portail client (
-          <span style={{ color: "var(--dash-text)" }}>client.63agency.com</span>
-          ) qui permet à ses clients de consulter et gérer les leads générés par
-          leurs campagnes publicitaires Meta.
+          63 Agency (« nous ») exploite ce portail client (
+          <span style={{ color: "var(--login-text)" }}>client.63agency.com</span>
+          ) permettant à ses clients de gérer les leads générés par leurs
+          campagnes publicitaires. La présente politique décrit les données que
+          nous collectons, comment nous les utilisons et les droits dont vous
+          disposez.
         </p>
       </LegalSection>
 
-      <LegalSection title="Données que nous collectons">
-        <ul className="list-disc space-y-2 ps-5">
+      <LegalSection title="Données collectées">
+        <p>Dans le cadre du service, nous pouvons collecter :</p>
+        <ul className="list-disc space-y-1.5 pl-5">
           <li>
-            Informations de compte (nom de société, email).
+            des informations de compte (nom de société, adresse e-mail) ;
           </li>
           <li>
-            Données Facebook/Meta autorisées par l&apos;utilisateur via Facebook
-            Login (identifiant Facebook, accès en lecture aux Pages et aux
-            formulaires Lead Ads).
+            des données de connexion Facebook / Meta autorisées par
+            l&apos;utilisateur (identifiant Facebook, accès aux Pages et aux
+            formulaires Lead Ads) ;
           </li>
           <li>
-            Les leads importés (nom, téléphone, email, campagne).
+            les leads importés (nom, téléphone, e-mail, campagne et champs
+            associés au formulaire).
           </li>
         </ul>
       </LegalSection>
 
       <LegalSection title="Utilisation des données">
-        <p>
-          Nous utilisons ces données pour afficher et gérer les leads du client,
-          synchroniser les formulaires Meta, et fournir le suivi ainsi que les
-          statistiques du portail.
-        </p>
-      </LegalSection>
-
-      <LegalSection title="Données Facebook / Meta">
-        <ul className="list-disc space-y-2 ps-5">
+        <p>Nous utilisons ces données uniquement pour :</p>
+        <ul className="list-disc space-y-1.5 pl-5">
           <li>
-            L&apos;accès n&apos;est possible qu&apos;avec l&apos;autorisation
-            explicite de l&apos;utilisateur.
+            afficher et gérer les leads du client dans son espace dédié ;
           </li>
-          <li>
-            Les jetons d&apos;accès sont chiffrés au repos.
-          </li>
-          <li>
-            Ils sont utilisés uniquement pour le service décrit ci-dessus.
-          </li>
-          <li>Ils ne sont jamais vendus.</li>
+          <li>synchroniser les formulaires Meta autorisés ;</li>
+          <li>fournir le suivi commercial et les statistiques associées.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection title="Partage">
+      <LegalSection title="Données Facebook / Meta">
         <p>
-          Aucune vente de données. Le partage est limité aux prestataires
-          techniques nécessaires au fonctionnement du service.
+          Nous accédons aux Pages Facebook et aux leads uniquement avec
+          l&apos;autorisation explicite de l&apos;utilisateur via Facebook Login.
+          Les jetons d&apos;accès sont stockés de manière chiffrée. Nous
+          n&apos;utilisons ces données que pour le service décrit dans cette
+          politique, et non à d&apos;autres fins.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Partage des données">
+        <p>
+          Nous ne vendons pas vos données. Le partage est limité aux
+          prestataires techniques strictement nécessaires au fonctionnement du
+          portail (hébergement, infrastructure), dans le respect de mesures de
+          sécurité appropriées.
         </p>
       </LegalSection>
 
       <LegalSection title="Conservation et sécurité">
         <p>
-          Nous appliquons le chiffrement des jetons, un accès restreint aux
-          systèmes, et une isolation stricte des données par client.
+          Nous appliquons des mesures techniques et organisationnelles adaptées :
+          chiffrement des jetons d&apos;accès Meta, accès restreint au personnel
+          autorisé, et isolation des données par client.
         </p>
       </LegalSection>
 
-      <LegalSection title="Vos droits">
+      <LegalSection title="Droits de l'utilisateur">
         <p>
-          Vous disposez d&apos;un droit d&apos;accès, de rectification et de
-          suppression de vos données. Pour la suppression, consultez la page{" "}
+          Vous pouvez demander l&apos;accès, la rectification ou la suppression
+          de vos données. Pour une demande de suppression, consultez la page{" "}
           <Link
             href="/data-deletion"
-            className="underline-offset-2 hover:underline"
-            style={{ color: "var(--dash-gold-muted)" }}
+            className="underline underline-offset-2"
+            style={{ color: "var(--login-gold)" }}
           >
             Suppression des données
           </Link>
@@ -97,19 +95,20 @@ export default function PrivacyPage() {
 
       <LegalSection title="Déconnexion Meta">
         <p>
-          L&apos;utilisateur peut déconnecter son compte Facebook à tout moment
-          depuis la page « Connexion Meta », ce qui révoque l&apos;accès et
-          supprime les jetons stockés.
+          Vous pouvez déconnecter votre compte Facebook à tout moment depuis la
+          page « Connexion Meta » de votre espace client. Cette action révoque
+          l&apos;accès et entraîne la suppression des jetons stockés associés.
         </p>
       </LegalSection>
 
       <LegalSection title="Contact">
         <p>
-          Pour toute question relative à vos données :{" "}
+          Pour toute question relative à cette politique ou à vos données,
+          contactez-nous à{" "}
           <a
             href="mailto:contact@63agency.ma"
-            className="underline-offset-2 hover:underline"
-            style={{ color: "var(--dash-gold-muted)" }}
+            className="underline underline-offset-2"
+            style={{ color: "var(--login-gold)" }}
           >
             contact@63agency.ma
           </a>
@@ -117,9 +116,9 @@ export default function PrivacyPage() {
         </p>
       </LegalSection>
 
-      <p className="text-xs" style={{ color: "var(--dash-muted)" }}>
-        Dernière mise à jour : {UPDATED_AT}
+      <p className="pt-2 text-xs" style={{ color: "var(--login-muted)" }}>
+        Dernière mise à jour : 3 novembre 2026.
       </p>
-    </LegalPageShell>
+    </LegalShell>
   );
 }
