@@ -625,10 +625,9 @@ function InformationsTab({
                 >
                   <span className="mb-1 flex justify-center">
                     {completed && !active ? (
-                      <IconCheck
-                        className="h-3.5 w-3.5"
-                        style={{ color: item.color }}
-                      />
+                      <span style={{ color: item.color }}>
+                        <IconCheck className="h-3.5 w-3.5" />
+                      </span>
                     ) : (
                       <span
                         className="h-2.5 w-2.5 rounded-full"
@@ -1087,10 +1086,9 @@ function SuiviTab({
         className="mb-1 flex items-center gap-2 text-sm font-semibold"
         style={{ color: "var(--dash-text)" }}
       >
-        <IconRefresh
-          className="h-4 w-4"
-          style={{ color: "var(--dash-gold-muted)" }}
-        />
+        <span style={{ color: "var(--dash-gold-muted)" }}>
+          <IconRefresh className="h-4 w-4" />
+        </span>
         Suivi des actions
       </div>
       <p className="mb-5 text-xs" style={{ color: "var(--dash-muted)" }}>
